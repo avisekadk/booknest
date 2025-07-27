@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react"; // Added useState
 import { useSelector } from "react-redux";
 import Header from "../layout/Header";
 
 const Users = () => {
   const { users } = useSelector((state) => state.user);
+  const [searchedKeyword, setSearchedKeyword] = useState(""); // State for search keyword
 
   const formatDate = (timeStamp) => {
     const date = new Date(timeStamp);
@@ -17,12 +18,23 @@ const Users = () => {
     return result;
   };
 
+  // Filter users based on search keyword (name or email)
+  const filteredUsers = users.filter((user) => {
+    const matchesName = user.name
+      .toLowerCase()
+      .includes(searchedKeyword.toLowerCase());
+    const matchesEmail = user.email
+      .toLowerCase()
+      .includes(searchedKeyword.toLowerCase());
+    return (matchesName || matchesEmail) && user.role === "User"; // Only show "User" role
+  });
+
   return (
     <main className="relative flex-1 p-6 pt-28 font-inter bg-gray-100 min-h-screen">
       {" "}
       {/* Consistent padding, font, and background */}
       <Header />
-      {/* Sub Header */}
+      {/* Sub Header and Search Bar */}
       <header className="flex flex-col gap-6 md:flex-row md:justify-between md:items-center mb-6">
         {" "}
         {/* Consistent gap, added mb-6 */}
@@ -31,9 +43,17 @@ const Users = () => {
           {/* Consistent heading style */}
           Registered Users
         </h2>
+        {/* Search Input for User Name or Email */}
+        <input
+          type="text"
+          placeholder="Search users by name or email..."
+          className="w-full sm:w-72 px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+          value={searchedKeyword}
+          onChange={(e) => setSearchedKeyword(e.target.value)}
+        />
       </header>
       {/* Table */}
-      {users && users.filter((u) => u.role === "User").length > 0 ? (
+      {filteredUsers && filteredUsers.length > 0 ? ( // Use filteredUsers here
         <div className="mt-6 overflow-x-auto bg-white rounded-2xl shadow-xl">
           {" "}
           {/* Added overflow-x-auto for horizontal scroll on small screens */}
@@ -61,8 +81,7 @@ const Users = () => {
               </tr>
             </thead>
             <tbody>
-              {users
-                .filter((u) => u.role === "User")
+              {filteredUsers // Map filtered users
                 .map((user, index) => (
                   <tr
                     key={user._id}
@@ -100,7 +119,7 @@ const Users = () => {
         <h3 className="text-3xl mt-5 font-extrabold text-[#2C3E50] text-center">
           {" "}
           {/* Consistent heading style and centering */}
-          No registered users found in library.
+          No registered users found matching your search.
         </h3>
       )}
     </main>

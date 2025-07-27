@@ -19,6 +19,7 @@ const Catalog = () => {
   );
 
   const [filter, setFilter] = useState("borrowed");
+  const [searchedKeyword, setSearchedKeyword] = useState(""); // New state for search keyword
 
   const formatDate = (timeStamp) => {
     const date = new Date(timeStamp);
@@ -38,17 +39,27 @@ const Catalog = () => {
 
   const currentDate = new Date();
 
-  const borrowedBooks = allBorrowedBooks?.filter((book) => {
+  // Filter books based on borrowed/overdue status and search keyword (user name or email)
+  const filteredAndSearchedBooks = allBorrowedBooks?.filter((book) => {
     const dueDate = new Date(book.dueDate);
-    return dueDate > currentDate && !book.returnDate;
+    const isBorrowed = dueDate > currentDate && !book.returnDate;
+    const isOverdue = dueDate <= currentDate && !book.returnDate;
+
+    // Apply filter based on 'borrowed' or 'overdue'
+    const matchesFilter = filter === "borrowed" ? isBorrowed : isOverdue;
+
+    // Apply search if a search term is present
+    const matchesSearch = searchedKeyword
+      ? book?.user?.name
+          ?.toLowerCase()
+          .includes(searchedKeyword.toLowerCase()) ||
+        book?.user?.email?.toLowerCase().includes(searchedKeyword.toLowerCase())
+      : true;
+
+    return matchesFilter && matchesSearch;
   });
 
-  const overdueBooks = allBorrowedBooks?.filter((book) => {
-    const dueDate = new Date(book.dueDate);
-    return dueDate <= currentDate && !book.returnDate;
-  });
-
-  const booksToDisplay = filter === "borrowed" ? borrowedBooks : overdueBooks;
+  const booksToDisplay = filteredAndSearchedBooks; // Use the filtered and searched books
 
   // Local state to control popup visibility and data
   const [showReturnPopup, setShowReturnPopup] = useState(false);
@@ -90,19 +101,15 @@ const Catalog = () => {
   return (
     <>
       <main className="relative flex-1 p-6 pt-28 font-inter bg-gray-100 min-h-screen">
-        {" "}
-        {/* Consistent padding, font, and background */}
         <Header />
-        {/* Filter Buttons Header */}
+        {/* Filter Buttons and Search Bar Header */}
         <header className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
-          {" "}
-          {/* Increased gap, added mb-6 */}
           <button
             className={`py-3 px-6 rounded-lg font-bold transition duration-300 ease-in-out shadow-lg transform hover:scale-105 w-full sm:w-72
               ${
                 filter === "borrowed"
-                  ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white" // Active gradient, white text
-                  : "bg-white text-blue-600 border-2 border-black shadow-md hover:bg-gray-100" // Inactive styling: white background, blue text, black border
+                  ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
+                  : "bg-white text-blue-600 border-2 border-black shadow-md hover:bg-gray-100"
               }`}
             onClick={() => setFilter("borrowed")}
           >
@@ -112,78 +119,64 @@ const Catalog = () => {
             className={`py-3 px-6 rounded-lg font-bold transition duration-300 ease-in-out shadow-lg transform hover:scale-105 w-full sm:w-72
               ${
                 filter === "overdue"
-                  ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white" // Active gradient, white text
-                  : "bg-white text-blue-600 border-2 border-black shadow-md hover:bg-gray-100" // Inactive styling: white background, blue text, black border
+                  ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
+                  : "bg-white text-blue-600 border-2 border-black shadow-md hover:bg-gray-100"
               }`}
             onClick={() => setFilter("overdue")}
           >
             Overdue Borrowers
           </button>
+          {/* Search Input for User Name or Email */}
+          <input
+            type="text"
+            placeholder="Search by user name or email..."
+            className="w-full sm:w-72 px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+            value={searchedKeyword}
+            onChange={(e) => setSearchedKeyword(e.target.value)}
+          />
         </header>
         {booksToDisplay && booksToDisplay.length > 0 ? (
           <div className="mt-6 overflow-x-auto bg-white rounded-2xl shadow-xl">
-            {" "}
-            {/* Added overflow-x-auto for horizontal scroll on small screens */}
             <table className="min-w-full border-collapse">
               <thead>
                 <tr className="bg-blue-50 text-blue-800 font-semibold text-left">
-                  {" "}
-                  {/* Consistent header row styling */}
-                  <th className="px-4 py-3 sm:px-6">ID</th>{" "}
-                  {/* Adjusted padding for mobile */}
-                  <th className="px-4 py-3 sm:px-6">User Name</th>
-                  <th className="px-4 py-3 sm:px-6">Email</th>
-                  <th className="px-4 py-3 sm:px-6 hidden sm:table-cell">
-                    Price
-                  </th>{" "}
-                  {/* Hide on small screens, show on sm and up */}
-                  <th className="px-4 py-3 sm:px-6 hidden md:table-cell">
-                    Due Date
-                  </th>{" "}
-                  {/* Hide on small/medium, show on md and up */}
-                  <th className="px-4 py-3 sm:px-6 hidden lg:table-cell">
+                  <th className="px-6 py-3">ID</th>
+                  <th className="px-6 py-3">User Name</th>
+                  <th className="px-6 py-3">Email</th>
+                  <th className="px-6 py-3 hidden sm:table-cell">Price</th>
+                  <th className="px-6 py-3 hidden md:table-cell">Due Date</th>
+                  <th className="px-6 py-3 hidden lg:table-cell">
                     Borrowed On
-                  </th>{" "}
-                  {/* Hide on small/medium/large, show on lg and up */}
-                  <th className="px-4 py-3 sm:px-6 text-center">
-                    Actions
-                  </th>{" "}
-                  {/* Consistent text to Actions */}
+                  </th>
+                  <th className="px-6 py-3 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {booksToDisplay.map((book, index) => (
                   <tr
                     key={book._id}
-                    className={
-                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                    } /* Alternating row colors */
+                    className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
                   >
-                    <td className="px-4 py-4 sm:px-6 text-gray-800">
-                      {index + 1}
-                    </td>{" "}
-                    {/* Adjusted padding, consistent text color */}
-                    <td className="px-4 py-4 sm:px-6 text-gray-800 font-medium">
+                    <td className="px-6 py-4 text-gray-800">{index + 1}</td>
+                    <td className="px-6 py-4 text-gray-800 font-medium">
                       {book?.user?.name}
                     </td>
-                    <td className="px-4 py-4 sm:px-6 text-gray-700">
+                    <td className="px-6 py-4 text-gray-700">
                       {book?.user?.email}
                     </td>
-                    <td className="px-4 py-4 sm:px-6 text-gray-700 hidden sm:table-cell">
+                    <td className="px-6 py-4 text-gray-700 hidden sm:table-cell">
                       $ {book.price}
                     </td>
-                    <td className="px-4 py-4 sm:px-6 text-gray-700 hidden md:table-cell">
+                    <td className="px-6 py-4 text-gray-700 hidden md:table-cell">
                       {formatDate(book.dueDate)}
                     </td>
-                    <td className="px-4 py-4 sm:px-6 text-gray-700 hidden lg:table-cell">
+                    <td className="px-6 py-4 text-gray-700 hidden lg:table-cell">
                       {formatDateAndTime(book.createdAt)}
                     </td>
-                    <td className="px-4 py-4 sm:px-6 flex gap-2 my-auto justify-center">
-                      {" "}
-                      {/* Adjusted gap and padding, centered */}
+                    <td className="px-6 py-4 flex gap-2 my-auto justify-center">
                       {book.returnDate ? (
                         <FaSquareCheck
-                          className="w-6 h-6 text-green-600" // Consistent green shade
+                          className="w-6 h-6 text-green-600"
                           title="Returned"
                         />
                       ) : (
@@ -191,12 +184,11 @@ const Catalog = () => {
                           onClick={() =>
                             openReturnBookPopup(book._id, book?.user?.email)
                           }
-                          className="p-2 rounded-full hover:bg-blue-100 text-blue-600 transition duration-200 transform hover:scale-110" /* Consistent button styling */
+                          className="p-2 rounded-full hover:bg-blue-100 text-blue-600 transition duration-200 transform hover:scale-110"
                           title="Return Book"
                           aria-label={`Return book ${book.title}`}
                         >
-                          <PiKeyReturnBold className="w-6 h-6" />{" "}
-                          {/* Consistent icon size */}
+                          <PiKeyReturnBold className="w-6 h-6" />
                         </button>
                       )}
                     </td>
@@ -207,9 +199,8 @@ const Catalog = () => {
           </div>
         ) : (
           <h3 className="text-3xl mt-5 font-extrabold text-[#2C3E50] text-center">
-            {" "}
-            {/* Consistent heading style and centering */}
-            No {filter === "borrowed" ? "borrowed" : "overdue"} books found!!
+            No {filter === "borrowed" ? "borrowed" : "overdue"} books found
+            matching your search!!
           </h3>
         )}
       </main>

@@ -64,8 +64,10 @@ const BookManagement = () => {
     setSearchedKeyword(e.target.value.toLowerCase());
   };
 
-  const searchedBooks = books.filter((book) =>
-    book.title.toLowerCase().includes(searchedKeyword)
+  const searchedBooks = books.filter(
+    (book) =>
+      book.title.toLowerCase().includes(searchedKeyword) || // Search by title
+      book.author.toLowerCase().includes(searchedKeyword) // Added search by author
   );
 
   if (loading || borrowSliceLoading) {
