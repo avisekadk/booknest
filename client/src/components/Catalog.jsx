@@ -121,23 +121,33 @@ const Catalog = () => {
           </button>
         </header>
         {booksToDisplay && booksToDisplay.length > 0 ? (
-          <div className="mt-6 overflow-hidden bg-white rounded-2xl shadow-xl">
+          <div className="mt-6 overflow-x-auto bg-white rounded-2xl shadow-xl">
             {" "}
-            {/* Consistent card styling for table container */}
+            {/* Added overflow-x-auto for horizontal scroll on small screens */}
             <table className="min-w-full border-collapse">
               <thead>
                 <tr className="bg-blue-50 text-blue-800 font-semibold text-left">
                   {" "}
                   {/* Consistent header row styling */}
-                  <th className="px-6 py-3">ID</th> {/* Increased padding */}
-                  <th className="px-6 py-3">User Name</th>
-                  <th className="px-6 py-3">Email</th>
-                  <th className="px-6 py-3">Price</th>
-                  <th className="px-6 py-3">Due Date</th>{" "}
-                  {/* Changed text to Due Date */}
-                  <th className="px-6 py-3">Borrowed On</th>{" "}
-                  {/* Changed text to Borrowed On */}
-                  <th className="px-6 py-3 text-center">Actions</th>{" "}
+                  <th className="px-4 py-3 sm:px-6">ID</th>{" "}
+                  {/* Adjusted padding for mobile */}
+                  <th className="px-4 py-3 sm:px-6">User Name</th>
+                  <th className="px-4 py-3 sm:px-6">Email</th>
+                  <th className="px-4 py-3 sm:px-6 hidden sm:table-cell">
+                    Price
+                  </th>{" "}
+                  {/* Hide on small screens, show on sm and up */}
+                  <th className="px-4 py-3 sm:px-6 hidden md:table-cell">
+                    Due Date
+                  </th>{" "}
+                  {/* Hide on small/medium, show on md and up */}
+                  <th className="px-4 py-3 sm:px-6 hidden lg:table-cell">
+                    Borrowed On
+                  </th>{" "}
+                  {/* Hide on small/medium/large, show on lg and up */}
+                  <th className="px-4 py-3 sm:px-6 text-center">
+                    Actions
+                  </th>{" "}
                   {/* Consistent text to Actions */}
                 </tr>
               </thead>
@@ -149,24 +159,28 @@ const Catalog = () => {
                       index % 2 === 0 ? "bg-white" : "bg-gray-50"
                     } /* Alternating row colors */
                   >
-                    <td className="px-6 py-4 text-gray-800">{index + 1}</td>{" "}
-                    {/* Increased padding, consistent text color */}
-                    <td className="px-6 py-4 text-gray-800 font-medium">
+                    <td className="px-4 py-4 sm:px-6 text-gray-800">
+                      {index + 1}
+                    </td>{" "}
+                    {/* Adjusted padding, consistent text color */}
+                    <td className="px-4 py-4 sm:px-6 text-gray-800 font-medium">
                       {book?.user?.name}
                     </td>
-                    <td className="px-6 py-4 text-gray-700">
+                    <td className="px-4 py-4 sm:px-6 text-gray-700">
                       {book?.user?.email}
                     </td>
-                    <td className="px-6 py-4 text-gray-700">$ {book.price}</td>
-                    <td className="px-6 py-4 text-gray-700">
+                    <td className="px-4 py-4 sm:px-6 text-gray-700 hidden sm:table-cell">
+                      $ {book.price}
+                    </td>
+                    <td className="px-4 py-4 sm:px-6 text-gray-700 hidden md:table-cell">
                       {formatDate(book.dueDate)}
                     </td>
-                    <td className="px-6 py-4 text-gray-700">
+                    <td className="px-4 py-4 sm:px-6 text-gray-700 hidden lg:table-cell">
                       {formatDateAndTime(book.createdAt)}
                     </td>
-                    <td className="px-6 py-4 flex gap-3 my-auto justify-center">
+                    <td className="px-4 py-4 sm:px-6 flex gap-2 my-auto justify-center">
                       {" "}
-                      {/* Increased gap, centered */}
+                      {/* Adjusted gap and padding, centered */}
                       {book.returnDate ? (
                         <FaSquareCheck
                           className="w-6 h-6 text-green-600" // Consistent green shade

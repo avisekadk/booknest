@@ -111,20 +111,27 @@ const MyBorrowedBooks = () => {
             Loading borrowed books...
           </p>
         ) : booksToDisplay && booksToDisplay.length > 0 ? (
-          <div className="mt-6 overflow-hidden bg-white rounded-2xl shadow-xl">
+          <div className="mt-6 overflow-x-auto bg-white rounded-2xl shadow-xl">
             {" "}
-            {/* Consistent card styling for table container */}
+            {/* Added overflow-x-auto for horizontal scroll on small screens */}
             <table className="min-w-full border-collapse">
               <thead>
                 <tr className="bg-blue-50 text-blue-800 font-semibold text-left">
                   {" "}
                   {/* Consistent header row styling */}
-                  <th className="px-6 py-3">ID</th> {/* Increased padding */}
-                  <th className="px-6 py-3">Book Title</th>
-                  <th className="px-6 py-3">Date and Time</th>
-                  <th className="px-6 py-3">Due Date</th>
-                  <th className="px-6 py-3">Returned</th>
-                  <th className="px-6 py-3 text-center">View</th>{" "}
+                  <th className="px-4 py-3 sm:px-6">ID</th>{" "}
+                  {/* Adjusted padding for mobile */}
+                  <th className="px-4 py-3 sm:px-6">Book Title</th>
+                  <th className="px-4 py-3 sm:px-6 hidden md:table-cell">
+                    Date and Time
+                  </th>{" "}
+                  {/* Hide on small/medium, show on md and up */}
+                  <th className="px-4 py-3 sm:px-6 hidden lg:table-cell">
+                    Due Date
+                  </th>{" "}
+                  {/* Hide on small/medium/large, show on lg and up */}
+                  <th className="px-4 py-3 sm:px-6">Returned</th>
+                  <th className="px-4 py-3 sm:px-6 text-center">View</th>{" "}
                   {/* Consistent text to Actions */}
                 </tr>
               </thead>
@@ -136,18 +143,20 @@ const MyBorrowedBooks = () => {
                       index % 2 === 0 ? "bg-white" : "bg-gray-50"
                     } /* Alternating row colors */
                   >
-                    <td className="px-6 py-4 text-gray-800">{index + 1}</td>{" "}
-                    {/* Increased padding, consistent text color */}
-                    <td className="px-6 py-4 text-gray-800 font-medium">
+                    <td className="px-4 py-4 sm:px-6 text-gray-800">
+                      {index + 1}
+                    </td>{" "}
+                    {/* Adjusted padding, consistent text color */}
+                    <td className="px-4 py-4 sm:px-6 text-gray-800 font-medium">
                       {book.bookTitle}
                     </td>
-                    <td className="px-6 py-4 text-gray-700">
+                    <td className="px-4 py-4 sm:px-6 text-gray-700 hidden md:table-cell">
                       {formatDate(book.borrowedDate)}
                     </td>
-                    <td className="px-6 py-4 text-gray-700">
+                    <td className="px-4 py-4 sm:px-6 text-gray-700 hidden lg:table-cell">
                       {formatDate(book.dueDate)}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4 sm:px-6">
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-semibold ${
                           book.returned
@@ -158,7 +167,7 @@ const MyBorrowedBooks = () => {
                         {book.returned ? "Yes" : "No"}
                       </span>
                     </td>
-                    <td className="px-6 py-4 flex justify-center">
+                    <td className="px-4 py-4 sm:px-6 flex justify-center">
                       {" "}
                       {/* Consistent centering */}
                       <button

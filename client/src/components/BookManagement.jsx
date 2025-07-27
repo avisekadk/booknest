@@ -119,7 +119,7 @@ const BookManagement = () => {
         {/* Table or No Books */}
         {books && books.length > 0 ? (
           searchedBooks.length > 0 ? (
-            <div className="mt-6 overflow-hidden bg-white rounded-2xl shadow-xl">
+            <div className="mt-6 overflow-x-auto bg-white rounded-2xl shadow-xl">
               {" "}
               {/* Consistent card styling for table container */}
               <table className="min-w-full border-collapse">
@@ -127,16 +127,22 @@ const BookManagement = () => {
                   <tr className="bg-blue-50 text-blue-800 font-semibold text-left">
                     {" "}
                     {/* Consistent header row styling */}
-                    <th className="px-6 py-3">ID</th> {/* Increased padding */}
-                    <th className="px-6 py-3">Name</th>
-                    <th className="px-6 py-3">Author</th>
+                    <th className="px-4 py-3 sm:px-6">ID</th>{" "}
+                    {/* Adjusted padding for mobile */}
+                    <th className="px-4 py-3 sm:px-6">Name</th>
+                    <th className="px-4 py-3 sm:px-6">Author</th>
                     {isAuthenticated && user?.role === "Admin" && (
-                      <th className="px-6 py-3">Quantity</th>
+                      <th className="px-4 py-3 sm:px-6 hidden sm:table-cell">
+                        Quantity
+                      </th>
                     )}
-                    <th className="px-6 py-3">Price</th>
-                    <th className="px-6 py-3">Availability</th>
+                    <th className="px-4 py-3 sm:px-6 hidden md:table-cell">
+                      Price
+                    </th>{" "}
+                    {/* Hide on small screens */}
+                    <th className="px-4 py-3 sm:px-6">Availability</th>
                     {isAuthenticated && user?.role === "Admin" && (
-                      <th className="px-6 py-3 text-center">Actions</th>
+                      <th className="px-4 py-3 sm:px-6 text-center">Actions</th>
                     )}
                   </tr>
                 </thead>
@@ -148,21 +154,25 @@ const BookManagement = () => {
                         index % 2 === 0 ? "bg-white" : "bg-gray-50"
                       } /* Alternating row colors */
                     >
-                      <td className="px-6 py-4 text-gray-800">{index + 1}</td>{" "}
-                      {/* Increased padding, consistent text color */}
-                      <td className="px-6 py-4 text-gray-800 font-medium">
+                      <td className="px-4 py-4 sm:px-6 text-gray-800">
+                        {index + 1}
+                      </td>{" "}
+                      {/* Adjusted padding */}
+                      <td className="px-4 py-4 sm:px-6 text-gray-800 font-medium">
                         {book.title}
                       </td>
-                      <td className="px-6 py-4 text-gray-700">{book.author}</td>
+                      <td className="px-4 py-4 sm:px-6 text-gray-700">
+                        {book.author}
+                      </td>
                       {isAuthenticated && user?.role === "Admin" && (
-                        <td className="px-6 py-4 text-gray-700">
+                        <td className="px-4 py-4 sm:px-6 text-gray-700 hidden sm:table-cell">
                           {book.quantity}
                         </td>
                       )}
-                      <td className="px-6 py-4 text-gray-700">
+                      <td className="px-4 py-4 sm:px-6 text-gray-700 hidden md:table-cell">
                         $ {book.price}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4 sm:px-6">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${
                             book.availability
@@ -174,9 +184,8 @@ const BookManagement = () => {
                         </span>
                       </td>
                       {isAuthenticated && user?.role === "Admin" && (
-                        <td className="px-6 py-4 flex gap-3 my-auto justify-center">
-                          {" "}
-                          {/* Increased gap, centered */}
+                        <td className="px-4 py-4 sm:px-6 flex gap-2 sm:gap-3 my-auto justify-center">
+                          {/* Adjusted gap for mobile, centered */}
                           <button
                             onClick={() => openReadPopup(book._id)}
                             title="Read Book"

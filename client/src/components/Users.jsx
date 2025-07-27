@@ -34,20 +34,30 @@ const Users = () => {
       </header>
       {/* Table */}
       {users && users.filter((u) => u.role === "User").length > 0 ? (
-        <div className="mt-6 overflow-hidden bg-white rounded-2xl shadow-xl">
+        <div className="mt-6 overflow-x-auto bg-white rounded-2xl shadow-xl">
           {" "}
-          {/* Consistent card styling for table container */}
+          {/* Added overflow-x-auto for horizontal scroll on small screens */}
           <table className="min-w-full border-collapse">
             <thead>
               <tr className="bg-blue-50 text-blue-800 font-semibold text-left">
                 {" "}
                 {/* Consistent header row styling */}
-                <th className="px-6 py-3">ID</th> {/* Increased padding */}
-                <th className="px-6 py-3">Name</th>
-                <th className="px-6 py-3">Email</th>
-                <th className="px-6 py-3">Role</th>
-                <th className="px-6 py-3 text-center">No. of books borrowed</th>
-                <th className="px-6 py-3 text-center">Created at</th>
+                <th className="px-4 py-3 sm:px-6">ID</th>{" "}
+                {/* Adjusted padding for mobile */}
+                <th className="px-4 py-3 sm:px-6">Name</th>
+                <th className="px-4 py-3 sm:px-6">Email</th>
+                <th className="px-4 py-3 sm:px-6 hidden sm:table-cell">
+                  Role
+                </th>{" "}
+                {/* Hide on small, show on sm and up */}
+                <th className="px-4 py-3 sm:px-6 hidden md:table-cell text-center">
+                  No. of books borrowed
+                </th>{" "}
+                {/* Hide on small/medium, show on md and up */}
+                <th className="px-4 py-3 sm:px-6 hidden lg:table-cell text-center">
+                  Created at
+                </th>{" "}
+                {/* Hide on small/medium/large, show on lg and up */}
               </tr>
             </thead>
             <tbody>
@@ -60,18 +70,24 @@ const Users = () => {
                       index % 2 === 0 ? "bg-white" : "bg-gray-50"
                     } /* Alternating row colors */
                   >
-                    <td className="px-6 py-4 text-gray-800">{index + 1}</td>{" "}
-                    {/* Increased padding, consistent text color */}
-                    <td className="px-6 py-4 text-gray-800 font-medium">
+                    <td className="px-4 py-4 sm:px-6 text-gray-800">
+                      {index + 1}
+                    </td>{" "}
+                    {/* Adjusted padding, consistent text color */}
+                    <td className="px-4 py-4 sm:px-6 text-gray-800 font-medium">
                       {user.name}
                     </td>
-                    <td className="px-6 py-4 text-gray-700">{user.email}</td>
-                    <td className="px-6 py-4 text-gray-700">{user.role}</td>
-                    <td className="px-6 py-4 text-center text-gray-700">
+                    <td className="px-4 py-4 sm:px-6 text-gray-700">
+                      {user.email}
+                    </td>
+                    <td className="px-4 py-4 sm:px-6 text-gray-700 hidden sm:table-cell">
+                      {user.role}
+                    </td>
+                    <td className="px-4 py-4 sm:px-6 hidden md:table-cell text-center text-gray-700">
                       {user?.borrowedBooks.length}
                     </td>{" "}
                     {/* Consistent text color and centering */}
-                    <td className="px-6 py-4 text-center text-gray-700">
+                    <td className="px-4 py-4 sm:px-6 hidden lg:table-cell text-center text-gray-700">
                       {formatDate(user.createdAt)}
                     </td>{" "}
                     {/* Consistent text color and centering */}

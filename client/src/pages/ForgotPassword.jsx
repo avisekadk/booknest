@@ -73,7 +73,7 @@ const ForgotPassword = () => {
         >
           &larr; Back to Login
         </Link>
-        <div className="max-w-sm w-full text-center">
+        <div className="max-w-sm w-full text-center pt-16 sm:pt-24">
           {" "}
           {/* Added text-center for overall alignment */}
           {/* Logo container */}
