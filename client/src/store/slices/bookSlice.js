@@ -37,6 +37,40 @@ const bookSlice = createSlice({
             state.loading = false;
             state.error = action.payload;
         },
+        // NEW: Reducers for updating a book
+        updateBookRequest(state) {
+            state.loading = true;
+            state.error = null;
+            state.message = null;
+        },
+        updateBookSuccess(state, action) {
+            state.loading = false;
+            state.message = action.payload;
+            // Optionally, update the book in the state if your backend returns the updated book
+            // Or, more commonly, trigger a re-fetch of all books after success in the component.
+        },
+        updateBookFailed(state, action) {
+            state.loading = false;
+            state.error = action.payload;
+            state.message = null;
+        },
+        // NEW: Reducers for deleting a book
+        deleteBookRequest(state) {
+            state.loading = true;
+            state.error = null;
+            state.message = null;
+        },
+        deleteBookSuccess(state, action) {
+            state.loading = false;
+            state.message = action.payload.message; // Assuming message comes from action.payload.message
+            // Remove the deleted book from the state
+            state.books = state.books.filter(book => book._id !== action.payload.bookId); // Assuming bookId is sent with payload
+        },
+        deleteBookFailed(state, action) {
+            state.loading = false;
+            state.error = action.payload;
+            state.message = null;
+        },
 
         resetBookSlice(state) {
             state.error = null;
@@ -76,6 +110,35 @@ export const addBook = (data) => async (dispatch) => {
         .catch((err) => {
             dispatch(bookSlice.actions.addBookFailed(err.response.data.message));
         });
+};
+
+// NEW: Action for updating a book
+export const updateBook = (id, bookData) => async (dispatch) => {
+    dispatch(bookSlice.actions.updateBookRequest());
+    try {
+        const { data } = await axios.put(`http://localhost:4000/api/v1/book/admin/update/${id}`, bookData, {
+            withCredentials: true,
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+        dispatch(bookSlice.actions.updateBookSuccess(data.message));
+    } catch (error) {
+        dispatch(bookSlice.actions.updateBookFailed(error.response.data.message));
+    }
+};
+
+// NEW: Action for deleting a book
+export const deleteBook = (id) => async (dispatch) => {
+    dispatch(bookSlice.actions.deleteBookRequest());
+    try {
+        const { data } = await axios.delete(`http://localhost:4000/api/v1/book/admin/delete/${id}`, {
+            withCredentials: true,
+        });
+        dispatch(bookSlice.actions.deleteBookSuccess({ message: data.message, bookId: id })); // Pass bookId to remove from state
+    } catch (error) {
+        dispatch(bookSlice.actions.deleteBookFailed(error.response.data.message));
+    }
 };
 
 export const resetBookSlice = () => (dispatch) => {

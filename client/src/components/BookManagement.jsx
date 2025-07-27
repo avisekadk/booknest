@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { BookA, NotebookPen } from "lucide-react";
+import { BookA, NotebookPen, Pencil, Trash2 } from "lucide-react"; // NEW: Import Pencil and Trash2 icons
 import { useDispatch, useSelector } from "react-redux";
 import {
   toggleAddBookPopup,
   openReadBookPopup,
   closeReadBookPopup,
   toggleRecordBookPopup,
+  toggleEditBookPopup, // NEW: Import toggleEditBookPopup
+  toggleDeleteBookPopup, // NEW: Import toggleDeleteBookPopup
 } from "../store/slices/popUpSlice";
 import { toast } from "react-toastify";
 import { fetchAllBooks, resetBookSlice } from "../store/slices/bookSlice";
@@ -17,15 +19,21 @@ import Header from "../layout/Header";
 import AddBookPopup from "../popups/AddBookPopup";
 import ReadBookPopup from "../popups/ReadBookPopup";
 import RecordBookPopup from "../popups/RecordBookPopup";
+import EditBookPopup from "../popups/EditBookPopup"; // NEW: Import EditBookPopup
+import DeleteBookConfirmation from "../popups/DeleteBookPopup"; // NEW: Import DeleteBookConfirmation
 
 const BookManagement = () => {
   const dispatch = useDispatch();
 
   const { loading, error, message, books } = useSelector((state) => state.book);
   const { isAuthenticated, user } = useSelector((state) => state.auth);
-  const { addBookPopup, readBookPopup, recordBookPopup } = useSelector(
-    (state) => state.popup
-  );
+  const {
+    addBookPopup,
+    readBookPopup,
+    recordBookPopup,
+    editBookPopup, // NEW: Get editBookPopup state
+    deleteBookPopup, // NEW: Get deleteBookPopup state
+  } = useSelector((state) => state.popup);
   const {
     loading: borrowSliceLoading,
     error: borrowSliceError,
@@ -35,11 +43,14 @@ const BookManagement = () => {
   const [readBook, setReadBook] = useState({});
   const [borrowBookId, setBorrowBookId] = useState("");
   const [searchedKeyword, setSearchedKeyword] = useState("");
+  const [editBook, setEditBook] = useState(null); // NEW: State to hold the book being edited
+  const [deleteBookId, setDeleteBookId] = useState(null); // NEW: State to hold the ID of the book to be deleted
+  const [deleteBookTitle, setDeleteBookTitle] = useState(""); // NEW: State to hold the title of the book to be deleted
 
   useEffect(() => {
     dispatch(fetchAllBooks());
     dispatch(fetchAllBorrowedBooks());
-  }, [dispatch]);
+  }, [dispatch, message]); // NEW: Added 'message' to dependency array to re-fetch books on update/delete success
 
   useEffect(() => {
     if (message || borrowSliceMessage) {
@@ -58,6 +69,20 @@ const BookManagement = () => {
   const openRecordBookPopup = (bookId) => {
     setBorrowBookId(bookId);
     dispatch(toggleRecordBookPopup());
+  };
+
+  // NEW: Function to open edit book popup
+  const openEditBookPopup = (id) => {
+    const bookToEdit = books.find((book) => book._id === id);
+    setEditBook(bookToEdit);
+    dispatch(toggleEditBookPopup());
+  };
+
+  // NEW: Function to open delete book confirmation popup
+  const openDeleteBookConfirmation = (id, title) => {
+    setDeleteBookId(id);
+    setDeleteBookTitle(title);
+    dispatch(toggleDeleteBookPopup());
   };
 
   const handleSearch = (e) => {
@@ -209,6 +234,26 @@ const BookManagement = () => {
                             <NotebookPen className="w-5 h-5" />{" "}
                             {/* Adjusted icon size */}
                           </button>
+                          {/* NEW: Edit Button */}
+                          <button
+                            onClick={() => openEditBookPopup(book._id)}
+                            title="Edit Book"
+                            aria-label={`Edit details for ${book.title}`}
+                            className="p-2 rounded-full hover:bg-yellow-100 text-yellow-600 transition duration-200 transform hover:scale-110"
+                          >
+                            <Pencil className="w-5 h-5" />
+                          </button>
+                          {/* NEW: Delete Button */}
+                          <button
+                            onClick={() =>
+                              openDeleteBookConfirmation(book._id, book.title)
+                            }
+                            title="Delete Book"
+                            aria-label={`Delete ${book.title}`}
+                            className="p-2 rounded-full hover:bg-red-100 text-red-600 transition duration-200 transform hover:scale-110"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
                         </td>
                       )}
                     </tr>
@@ -239,6 +284,30 @@ const BookManagement = () => {
         />
       )}
       {recordBookPopup && <RecordBookPopup bookId={borrowBookId} />}
+      {/* NEW: Edit Book Popup */}
+      {editBookPopup && editBook && (
+        <EditBookPopup
+          book={editBook}
+          onClose={() => {
+            dispatch(toggleEditBookPopup());
+            setEditBook(null); // Clear the edited book state
+            dispatch(fetchAllBooks()); // Re-fetch books to show updated data
+          }}
+        />
+      )}
+      {/* NEW: Delete Book Confirmation Popup */}
+      {deleteBookPopup && deleteBookId && (
+        <DeleteBookConfirmation
+          bookId={deleteBookId}
+          bookTitle={deleteBookTitle}
+          onClose={() => {
+            dispatch(toggleDeleteBookPopup());
+            setDeleteBookId(null); // Clear the deleted book ID state
+            setDeleteBookTitle(""); // Clear the deleted book title state
+            dispatch(fetchAllBooks()); // Re-fetch books to reflect deletion
+          }}
+        />
+      )}
     </>
   );
 };

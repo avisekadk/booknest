@@ -85,79 +85,70 @@ const UserDashboard = () => {
             <div className="flex flex-col lg:flex-row gap-6">
               {" "}
               {/* Adjusted gap */}
-              {/* Your Borrowed Book List Card */}
-              <div className="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-xl transition duration-300 ease-in-out transform hover:scale-[1.02]">
-                {" "}
-                {/* Consistent card styling and hover */}
-                <span className="w-[2px] bg-gray-300 h-14 rounded-full"></span>{" "}
-                {/* Consistent separator */}
+              {/* Your Borrowed Book List Card - ADJUSTED ICON SIZE */}
+              <div className="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-xl transition duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-2xl flex-1 cursor-pointer">
+                <span className="w-[2px] bg-gray-300 h-14 rounded-full"></span>
+
+                {/* Reverted p-5 to p-4, adjusted img size from w-7 h-7 to w-6 h-6 */}
+
                 <span className="bg-blue-100 h-14 w-14 flex justify-center items-center rounded-xl p-4 shadow-md">
-                  {" "}
-                  {/* Consistent icon container styling */}
-                  <img
-                    src={bookIcon}
-                    alt="book-icon"
-                    className="w-7 h-7"
-                  />{" "}
-                  {/* Consistent icon size */}
+                  <img src={bookIcon} alt="book-icon" className="w-6 h-6" />
                 </span>
-                <p className="text-lg xl:text-xl font-semibold text-[#2C3E50]">
-                  Your Borrowed Book List
-                </p>{" "}
-                {/* Consistent text styling */}
+
+                {/* MODIFIED: Adjusted font size and color for consistency with Admin Dashboard */}
+                <div className="flex flex-col">
+                  <p className="text-3xl font-extrabold text-[#2C3E50]">
+                    {totalBorrowedBooks}
+                  </p>
+                  <span className="text-base text-gray-600 font-medium">
+                    Your Borrowed Book
+                  </span>
+                </div>
               </div>
-              {/* Your Returned Book List Card */}
-              <div className="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-xl transition duration-300 ease-in-out transform hover:scale-[1.02]">
-                {" "}
-                {/* Consistent card styling and hover */}
-                <span className="w-[2px] bg-gray-300 h-14 rounded-full"></span>{" "}
-                {/* Consistent separator */}
+              {/* Your Returned Book List Card - ADJUSTED ICON SIZE */}
+              <div className="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-xl transition duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-2xl flex-1 cursor-pointer">
+                <span className="w-[2px] bg-gray-300 h-14 rounded-full"></span>
+
+                {/* Reverted p-5 to p-4, adjusted img size from w-7 h-7 to w-6 h-6 */}
+
                 <span className="bg-blue-100 h-14 w-14 flex justify-center items-center rounded-xl p-4 shadow-md">
-                  {" "}
-                  {/* Consistent icon container styling */}
-                  <img
-                    src={returnIcon}
-                    alt="return-icon"
-                    className="w-7 h-7"
-                  />{" "}
-                  {/* Consistent icon size */}
+                  <img src={returnIcon} alt="return-icon" className="w-6 h-6" />
                 </span>
-                <p className="text-lg xl:text-xl font-semibold text-[#2C3E50]">
-                  Your Returned Book List
-                </p>{" "}
-                {/* Consistent text styling */}
+
+                {/* MODIFIED: Adjusted font size and color for consistency with Admin Dashboard */}
+                <div className="flex flex-col">
+                  <p className="text-3xl font-extrabold text-[#2C3E50]">
+                    {totalReturnedBooks}
+                  </p>
+                  <span className="text-base text-gray-600 font-medium">
+                    Your Returned Book
+                  </span>
+                </div>
               </div>
             </div>
             {/* Bottom Row Cards */}
             <div className="flex flex-col lg:flex-row gap-6">
               {" "}
               {/* Adjusted gap */}
-              {/* Browse Books Inventory Card */}
-              <div className="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-xl transition duration-300 ease-in-out transform hover:scale-[1.02]">
-                {" "}
-                {/* Consistent card styling and hover */}
-                <span className="w-[2px] bg-gray-300 h-14 rounded-full"></span>{" "}
-                {/* Consistent separator */}
+              {/* Browse Books Inventory Card - NO CHANGES HERE */}
+              <div className="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-xl transition duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-2xl flex-1 cursor-pointer">
+                <span className="w-[2px] bg-gray-300 h-14 rounded-full"></span>
+
+                {/* Reverted p-5 to p-4, adjusted img size from w-7 h-7 to w-6 h-6 */}
+
                 <span className="bg-blue-100 h-14 w-14 flex justify-center items-center rounded-xl p-4 shadow-md">
-                  {" "}
-                  {/* Consistent icon container styling */}
-                  <img
-                    src={browseIcon}
-                    alt="browse-icon"
-                    className="w-7 h-7"
-                  />{" "}
-                  {/* Consistent icon size */}
+                  <img src={browseIcon} alt="browse-icon" className="w-6 h-6" />
                 </span>
+
                 <p className="text-lg xl:text-xl font-semibold text-[#2C3E50]">
                   Let's browse books inventory
-                </p>{" "}
-                {/* Consistent text styling */}
+                </p>
               </div>
               {/* Optional Logo with Title (if needed, currently commented out in original) */}
-              {/* <img
-                src={logo_with_title}
-                alt="logo"
-                className="hidden lg:block w-[140px] object-contain"
+              {/* <img 
+                src={logo_with_title} 
+                alt="logo" 
+                className="hidden lg:block w-[140px] object-contain" 
               /> */}
             </div>
           </div>
