@@ -1,10 +1,10 @@
-import React, { useState } from "react"; // Added useState
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import Header from "../layout/Header";
 
 const Users = () => {
   const { users } = useSelector((state) => state.user);
-  const [searchedKeyword, setSearchedKeyword] = useState(""); // State for search keyword
+  const [searchedKeyword, setSearchedKeyword] = useState("");
 
   const formatDate = (timeStamp) => {
     const date = new Date(timeStamp);
@@ -26,24 +26,16 @@ const Users = () => {
     const matchesEmail = user.email
       .toLowerCase()
       .includes(searchedKeyword.toLowerCase());
-    return (matchesName || matchesEmail) && user.role === "User"; // Only show "User" role
+    return (matchesName || matchesEmail) && user.role === "User";
   });
 
   return (
     <main className="relative flex-1 p-6 pt-28 font-inter bg-gray-100 min-h-screen">
-      {" "}
-      {/* Consistent padding, font, and background */}
       <Header />
-      {/* Sub Header and Search Bar */}
       <header className="flex flex-col gap-6 md:flex-row md:justify-between md:items-center mb-6">
-        {" "}
-        {/* Consistent gap, added mb-6 */}
         <h2 className="text-3xl font-extrabold text-[#2C3E50]">
-          {" "}
-          {/* Consistent heading style */}
           Registered Users
         </h2>
-        {/* Search Input for User Name or Email */}
         <input
           type="text"
           placeholder="Search users by name or email..."
@@ -52,47 +44,42 @@ const Users = () => {
           onChange={(e) => setSearchedKeyword(e.target.value)}
         />
       </header>
-      {/* Table */}
-      {filteredUsers && filteredUsers.length > 0 ? ( // Use filteredUsers here
+      {filteredUsers && filteredUsers.length > 0 ? (
         <div className="mt-6 overflow-x-auto bg-white rounded-2xl shadow-xl">
-          {" "}
-          {/* Added overflow-x-auto for horizontal scroll on small screens */}
           <table className="min-w-full border-collapse">
             <thead>
               <tr className="bg-blue-50 text-blue-800 font-semibold text-left">
-                {" "}
-                {/* Consistent header row styling */}
-                <th className="px-4 py-3 sm:px-6">ID</th>{" "}
-                {/* Adjusted padding for mobile */}
+                <th className="px-4 py-3 sm:px-6">ID</th>
                 <th className="px-4 py-3 sm:px-6">Name</th>
                 <th className="px-4 py-3 sm:px-6">Email</th>
-                <th className="px-4 py-3 sm:px-6 hidden sm:table-cell">
-                  Role
+                <th className="px-4 py-3 sm:px-6 hidden sm:table-cell">Role</th>
+                <th className="px-4 py-3 sm:px-6 text-center">
+                  Books Borrowed
+                </th>
+                <th className="px-4 py-3 sm:px-6 text-center">
+                  Books Returned
                 </th>{" "}
-                {/* Hide on small, show on sm and up */}
-                <th className="px-4 py-3 sm:px-6 hidden md:table-cell text-center">
-                  No. of books borrowed
-                </th>{" "}
-                {/* Hide on small/medium, show on md and up */}
+                {/* NEW: Column for number of books returned */}
                 <th className="px-4 py-3 sm:px-6 hidden lg:table-cell text-center">
                   Created at
-                </th>{" "}
-                {/* Hide on small/medium/large, show on lg and up */}
+                </th>
               </tr>
             </thead>
             <tbody>
-              {filteredUsers // Map filtered users
-                .map((user, index) => (
+              {filteredUsers.map((user, index) => {
+                // Calculate number of returned books for the current user
+                const returnedBooksCount =
+                  user?.borrowedBooks?.filter((book) => book.returned).length ||
+                  0;
+
+                return (
                   <tr
                     key={user._id}
-                    className={
-                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                    } /* Alternating row colors */
+                    className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
                   >
                     <td className="px-4 py-4 sm:px-6 text-gray-800">
                       {index + 1}
-                    </td>{" "}
-                    {/* Adjusted padding, consistent text color */}
+                    </td>
                     <td className="px-4 py-4 sm:px-6 text-gray-800 font-medium">
                       {user.name}
                     </td>
@@ -102,23 +89,24 @@ const Users = () => {
                     <td className="px-4 py-4 sm:px-6 text-gray-700 hidden sm:table-cell">
                       {user.role}
                     </td>
-                    <td className="px-4 py-4 sm:px-6 hidden md:table-cell text-center text-gray-700">
-                      {user?.borrowedBooks.length}
+                    <td className="px-4 py-4 sm:px-6 text-center text-gray-700">
+                      {user?.borrowedBooks?.length || 0}
+                    </td>
+                    <td className="px-4 py-4 sm:px-6 text-center text-gray-700">
+                      {returnedBooksCount}
                     </td>{" "}
-                    {/* Consistent text color and centering */}
+                    {/* Display the calculated returned books count */}
                     <td className="px-4 py-4 sm:px-6 hidden lg:table-cell text-center text-gray-700">
                       {formatDate(user.createdAt)}
-                    </td>{" "}
-                    {/* Consistent text color and centering */}
+                    </td>
                   </tr>
-                ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
       ) : (
         <h3 className="text-3xl mt-5 font-extrabold text-[#2C3E50] text-center">
-          {" "}
-          {/* Consistent heading style and centering */}
           No registered users found matching your search.
         </h3>
       )}
