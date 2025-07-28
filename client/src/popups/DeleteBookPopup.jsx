@@ -10,19 +10,10 @@ const DeleteBookConfirmation = ({ bookId, bookTitle, onClose }) => {
 
   const handleDelete = async () => {
     try {
-      // Dispatch the deleteBook action
-      // The deleteBook action now returns a promise
-      await dispatch(deleteBook(bookId));
-      toast.success(`"${bookTitle}" deleted successfully!`);
-      onClose(); // Close popup on success
+      const message = await dispatch(deleteBook(bookId));
+      onClose();
     } catch (error) {
-      // The error message should be handled by the bookSlice's error state,
-      // but we add a toast here for immediate user feedback.
-      // Ensure error is a string or convert it
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      toast.error(errorMessage || "Failed to delete book. Please try again.");
-      console.error("Delete book failed:", error);
+      toast.error(error.message || "Failed to delete book.");
     }
   };
 

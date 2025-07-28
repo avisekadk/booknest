@@ -53,59 +53,6 @@ export const recordBorrowBook = catchAsyncErrors(async (req, res, next) => {
 
 });
 
-
-// export const returnBorrowBooks = catchAsyncErrors(async (req, res, next) => {
-//     const { bookId } = req.params;
-//     const { email } = req.body;
-
-//     const book = await Book.findById(bookId);
-//     if (!book) {
-//         return next(new ErrorHandler("Book not found.", 404));
-//     }
-
-//     const user = await User.findOne({ email, accountVerified: true });
-//     if (!user) {
-//         return next(new ErrorHandler("User not found.", 404));
-//     }
-
-//     const borrowedBook = user.borrowedBooks.find(
-//         (b) => b.bookId.toString() === bookId && b.returned === false
-//     );
-
-//     if (!borrowedBook) {
-//         return next(new ErrorHandler("You have not borrowed this book.", 400));
-//     }
-
-//     borrowedBook.returned = true;
-//     await user.save();
-
-//     book.quantity += 1;
-//     book.availability = book.quantity > 0;
-//     await book.save();
-
-//     const borrowRecord = await Borrow.findOne({
-//         book: bookId,
-//         "user.email": email,
-//         returnDate: null,
-//     });
-
-//     if (!borrowRecord) {
-//         return next(new ErrorHandler("You have not borrowed this book.", 400));
-//     }
-
-//     borrowRecord.returnDate = new Date();
-//     const fine = calculateFine(borrowRecord.dueDate);
-//     borrowRecord.fine = fine;
-//     await borrowRecord.save();
-
-//     res.status(200).json({
-//         success: true,
-//         message: fine !== 0
-//             ? `The book has been returned successfully. The total charges, including fine, are $${fine + book.price}`
-//             : `The book has been returned successfully. The total charges are $${book.price}`,
-//     });
-// });
-
 export const returnBorrowBooks = catchAsyncErrors(async (req, res, next) => {
     const { borrowId } = req.params;  // rename param for clarity
     const { email } = req.body;
