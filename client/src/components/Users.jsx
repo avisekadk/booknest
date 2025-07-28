@@ -6,6 +6,10 @@ const Users = () => {
   const { users } = useSelector((state) => state.user);
   const [searchedKeyword, setSearchedKeyword] = useState("");
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [usersPerPage] = useState(15); // Set to 15 users per page
+
   const formatDate = (timeStamp) => {
     const date = new Date(timeStamp);
     const formattedDate = `${String(date.getDate()).padStart(2, "0")}-${String(
@@ -28,6 +32,48 @@ const Users = () => {
       .includes(searchedKeyword.toLowerCase());
     return (matchesName || matchesEmail) && user.role === "User";
   });
+
+  // Pagination calculations
+  const indexOfLastUser = currentPage * usersPerPage;
+  const indexOfFirstUser = indexOfLastUser - usersPerPage;
+  const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
+
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  const renderPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPageNumbersToShow = 5; // e.g., current, and 2 before/2 after
+    let startPage = Math.max(
+      1,
+      currentPage - Math.floor(maxPageNumbersToShow / 2)
+    );
+    let endPage = Math.min(totalPages, startPage + maxPageNumbersToShow - 1);
+
+    // Adjust startPage if we're near the end
+    if (endPage - startPage + 1 < maxPageNumbersToShow) {
+      startPage = Math.max(1, endPage - maxPageNumbersToShow + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(
+        <button
+          key={i}
+          onClick={() => paginate(i)}
+          className={`px-4 py-2 rounded-lg font-semibold transition duration-200 ease-in-out
+                      ${
+                        currentPage === i
+                          ? "bg-blue-600 text-white shadow-md"
+                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      }`}
+        >
+          {i}
+        </button>
+      );
+    }
+    return pageNumbers;
+  };
 
   return (
     <main className="relative flex-1 p-6 pt-28 font-inter bg-gray-100 min-h-screen">
@@ -66,7 +112,8 @@ const Users = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.map((user, index) => {
+              {currentUsers.map((user, index) => {
+                // Use currentUsers for mapping
                 // Calculate number of returned books for the current user
                 const returnedBooksCount =
                   user?.borrowedBooks?.filter((book) => book.returned).length ||
@@ -78,7 +125,8 @@ const Users = () => {
                     className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
                   >
                     <td className="px-4 py-4 sm:px-6 text-gray-800">
-                      {index + 1}
+                      {indexOfFirstUser + index + 1}{" "}
+                      {/* Corrected ID for pagination */}
                     </td>
                     <td className="px-4 py-4 sm:px-6 text-gray-800 font-medium">
                       {user.name}
@@ -109,6 +157,31 @@ const Users = () => {
         <h3 className="text-3xl mt-5 font-extrabold text-[#2C3E50] text-center">
           No registered users found matching your search.
         </h3>
+      )}
+
+      {/* Pagination Controls */}
+      {filteredUsers.length > usersPerPage && ( // Only show pagination if there's more than one page
+        <div className="flex justify-center items-center gap-2 mt-8">
+          <button
+            onClick={() => paginate(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-4 py-2 rounded-lg bg-blue-500 text-white font-semibold shadow-md
+                       hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed
+                       transition duration-200 ease-in-out"
+          >
+            Previous
+          </button>
+          {renderPageNumbers()}
+          <button
+            onClick={() => paginate(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 rounded-lg bg-blue-500 text-white font-semibold shadow-md
+                       hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed
+                       transition duration-200 ease-in-out"
+          >
+            Next
+          </button>
+        </div>
       )}
     </main>
   );
