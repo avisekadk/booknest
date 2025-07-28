@@ -194,13 +194,13 @@ const UserDashboard = () => {
                 {" "}
                 {/* Consistent text styling */}
                 <span className="w-3 h-3 rounded-full bg-[#1619cc] shadow-sm"></span>
-                <span>Total Borrowed Books: {totalBorrowedBooks}</span>
+                <span>Borrowed Books: {totalBorrowedBooks}</span>
               </p>
               <p className="flex items-center gap-2 text-base text-gray-700 font-medium">
                 {" "}
                 {/* Consistent text styling */}
                 <span className="w-3 h-3 rounded-full bg-[#2079c2] shadow-sm"></span>
-                <span>Total Returned Books: {totalReturnedBooks}</span>
+                <span>Returned Books: {totalReturnedBooks}</span>
               </p>
             </div>
           </div>
