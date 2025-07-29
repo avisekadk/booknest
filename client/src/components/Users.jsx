@@ -44,35 +44,77 @@ const Users = () => {
 
   const renderPageNumbers = () => {
     const pageNumbers = [];
-    const maxPageNumbersToShow = 5; // e.g., current, and 2 before/2 after
-    let startPage = Math.max(
-      1,
-      currentPage - Math.floor(maxPageNumbersToShow / 2)
-    );
-    let endPage = Math.min(totalPages, startPage + maxPageNumbersToShow - 1);
+    const maxPageButtons = 3; // Number of visible numeric page buttons around current page (excluding 1st and last)
 
-    // Adjust startPage if we're near the end
-    if (endPage - startPage + 1 < maxPageNumbersToShow) {
-      startPage = Math.max(1, endPage - maxPageNumbersToShow + 1);
+    if (totalPages <= maxPageButtons + 2) {
+      // If total pages are few, show all of them
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      pageNumbers.push(1); // Always show the first page
+
+      // Determine the range of middle pages to show
+      let startRange = Math.max(
+        2,
+        currentPage - Math.floor(maxPageButtons / 2)
+      );
+      let endRange = Math.min(
+        totalPages - 1,
+        currentPage + Math.floor(maxPageButtons / 2)
+      );
+
+      // Adjust start/end range if current page is near the boundaries
+      if (currentPage - 1 <= Math.floor(maxPageButtons / 2)) {
+        endRange = maxPageButtons + 1; // Show more pages at the beginning
+      } else if (totalPages - currentPage <= Math.floor(maxPageButtons / 2)) {
+        startRange = totalPages - maxPageButtons; // Show more pages at the end
+      }
+
+      // Add leading ellipsis
+      if (startRange > 2) {
+        pageNumbers.push("...");
+      }
+
+      // Add middle pages
+      for (let i = startRange; i <= endRange; i++) {
+        pageNumbers.push(i);
+      }
+
+      // Add trailing ellipsis
+      if (endRange < totalPages - 1) {
+        pageNumbers.push("...");
+      }
+
+      // Always show the last page
+      if (!pageNumbers.includes(totalPages)) {
+        pageNumbers.push(totalPages);
+      }
     }
 
-    for (let i = startPage; i <= endPage; i++) {
-      pageNumbers.push(
+    return pageNumbers.map((number, idx) =>
+      number === "..." ? (
+        <span
+          key={`dots-${idx}`}
+          className="h-10 w-10 flex items-center justify-center text-gray-700"
+        >
+          ...
+        </span>
+      ) : (
         <button
-          key={i}
-          onClick={() => paginate(i)}
-          className={`px-4 py-2 rounded-lg font-semibold transition duration-200 ease-in-out
+          key={number}
+          onClick={() => paginate(number)}
+          className={`h-10 w-10 flex items-center justify-center rounded-lg font-semibold transition duration-200 ease-in-out border
                       ${
-                        currentPage === i
-                          ? "bg-blue-600 text-white shadow-md"
-                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                        currentPage === number
+                          ? "bg-blue-600 text-white shadow-md border-blue-600" // Active state
+                          : "bg-white text-gray-700 hover:bg-gray-100 border-gray-300" // Inactive state
                       }`}
         >
-          {i}
+          {number}
         </button>
-      );
-    }
-    return pageNumbers;
+      )
+    );
   };
 
   return (
@@ -160,27 +202,34 @@ const Users = () => {
       )}
 
       {/* Pagination Controls */}
-      {filteredUsers.length > usersPerPage && ( // Only show pagination if there's more than one page
-        <div className="flex justify-center items-center gap-2 mt-8">
-          <button
-            onClick={() => paginate(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="px-4 py-2 rounded-lg bg-blue-500 text-white font-semibold shadow-md
-                       hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed
-                       transition duration-200 ease-in-out"
-          >
-            Previous
-          </button>
-          {renderPageNumbers()}
-          <button
-            onClick={() => paginate(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="px-4 py-2 rounded-lg bg-blue-500 text-white font-semibold shadow-md
-                       hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed
-                       transition duration-200 ease-in-out"
-          >
-            Next
-          </button>
+      {filteredUsers.length > 0 && ( // Only show pagination if there are filtered users
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8">
+          <div className="text-gray-700 text-lg font-semibold">
+            Results: {Math.min(indexOfFirstUser + 1, filteredUsers.length)} -{" "}
+            {Math.min(indexOfLastUser, filteredUsers.length)} of{" "}
+            {filteredUsers.length}
+          </div>
+          <div className="flex justify-center items-center gap-2">
+            <button
+              onClick={() => paginate(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="h-10 w-10 flex items-center justify-center rounded-lg bg-white text-gray-700 border border-gray-300 font-semibold shadow-sm
+                         hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed
+                         transition duration-200 ease-in-out"
+            >
+              &lt;
+            </button>
+            {renderPageNumbers()}
+            <button
+              onClick={() => paginate(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="h-10 w-10 flex items-center justify-center rounded-lg bg-white text-gray-700 border border-gray-300 font-semibold shadow-sm
+                         hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed
+                         transition duration-200 ease-in-out"
+            >
+              &gt;
+            </button>
+          </div>
         </div>
       )}
     </main>
