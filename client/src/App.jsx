@@ -10,9 +10,15 @@ import ResetPassword from "./pages/ResetPassword";
 import { ToastContainer } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { getUser } from "./store/slices/authSlice";
+// MODIFIED: Import fetchAllUsers with its new parameters
 import { fetchAllUsers } from "./store/slices/userSlice";
+// MODIFIED: Import fetchAllBooks with its new parameters
 import { fetchAllBooks } from "./store/slices/bookSlice";
-import { fetchUserBorrowedBooks } from "./store/slices/borrowSlice";
+// MODIFIED: Import fetchUserBorrowedBooks with its new parameters
+import {
+  fetchUserBorrowedBooks,
+  fetchAllBorrowedBooks,
+} from "./store/slices/borrowSlice"; // Added fetchAllBorrowedBooks
 import "react-toastify/dist/ReactToastify.css";
 
 const App = () => {
@@ -25,17 +31,22 @@ const App = () => {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      dispatch(fetchAllBooks());
+      // Dispatch fetchAllBooks with default pagination parameters
+      dispatch(fetchAllBooks(1, 15, ""));
 
       if (user.role === "User") {
-        dispatch(fetchUserBorrowedBooks());
+        // Dispatch fetchUserBorrowedBooks with default pagination parameters
+        dispatch(fetchUserBorrowedBooks(1, 15, "all"));
       }
 
       if (user.role === "Admin") {
-        dispatch(fetchAllUsers());
+        // Dispatch fetchAllUsers with default pagination parameters
+        dispatch(fetchAllUsers(1, 15, ""));
+        // Also fetch all borrowed books for admin catalog view with default pagination and filter
+        dispatch(fetchAllBorrowedBooks(1, 15, "borrowed", ""));
       }
     }
-  }, [dispatch, isAuthenticated, user]);
+  }, [dispatch, isAuthenticated, user]); // Re-run when auth state or user changes
 
   return (
     <BrowserRouter>

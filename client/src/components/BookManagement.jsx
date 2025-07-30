@@ -10,9 +10,10 @@ import {
   toggleDeleteBookPopup,
 } from "../store/slices/popUpSlice";
 import { toast } from "react-toastify";
+// MODIFIED: Import totalBooksCount and totalPages from bookSlice
 import { fetchAllBooks, resetBookSlice } from "../store/slices/bookSlice";
 import {
-  fetchAllBorrowedBooks,
+  fetchAllBorrowedBooks, // Keep this for now, will update later for server-side pagination
   resetBorrowSlice,
 } from "../store/slices/borrowSlice";
 import Header from "../layout/Header";
@@ -25,7 +26,9 @@ import DeleteBookConfirmation from "../popups/DeleteBookPopup";
 const BookManagement = () => {
   const dispatch = useDispatch();
 
-  const { loading, error, message, books } = useSelector((state) => state.book);
+  // MODIFIED: Get totalBooksCount and totalPages from Redux state
+  const { loading, error, message, books, totalBooksCount, totalPages } =
+    useSelector((state) => state.book);
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const {
     addBookPopup,
@@ -47,14 +50,16 @@ const BookManagement = () => {
   const [deleteBookId, setDeleteBookId] = useState(null);
   const [deleteBookTitle, setDeleteBookTitle] = useState("");
 
-  // Pagination states
+  // Pagination states (still client-side for managing current page)
   const [currentPage, setCurrentPage] = useState(1);
-  const [booksPerPage] = useState(15); // Set to 15 books per page, as requested.
+  const [booksPerPage] = useState(15); // This value is sent to the server
 
   useEffect(() => {
-    dispatch(fetchAllBooks());
+    // MODIFIED: Pass currentPage, booksPerPage, and searchedKeyword to fetchAllBooks
+    dispatch(fetchAllBooks(currentPage, booksPerPage, searchedKeyword));
+    // fetchAllBorrowedBooks is still client-side paginated, will update later
     dispatch(fetchAllBorrowedBooks());
-  }, [dispatch, message]);
+  }, [dispatch, message, currentPage, booksPerPage, searchedKeyword]); // Added currentPage, booksPerPage, searchedKeyword to dependencies
 
   useEffect(() => {
     if (message || borrowSliceMessage) {
@@ -88,22 +93,12 @@ const BookManagement = () => {
   };
 
   const handleSearch = (e) => {
-    setSearchedKeyword(e.target.value.toLowerCase());
-    setCurrentPage(1); // Reset to first page on new search
+    setSearchedKeyword(e.target.value); // Removed toLowerCase() as server handles case-insensitivity
+    setCurrentPage(1); // Always reset to first page on new search
   };
 
-  const filteredBooks = books.filter(
-    (book) =>
-      book.title.toLowerCase().includes(searchedKeyword) ||
-      book.author.toLowerCase().includes(searchedKeyword)
-  );
-
-  // Pagination calculations
-  const indexOfLastBook = currentPage * booksPerPage;
-  const indexOfFirstBook = indexOfLastBook - booksPerPage;
-  const currentBooks = filteredBooks.slice(indexOfFirstBook, indexOfLastBook);
-
-  const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
+  // REMOVED: filteredBooks, indexOfLastBook, indexOfFirstBook, currentBooks
+  // These are now handled by the server and available directly in 'books' from Redux.
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -182,6 +177,13 @@ const BookManagement = () => {
     );
   };
 
+  // Calculate display indices for "Results: X - Y of Z"
+  const indexOfFirstBookDisplay = (currentPage - 1) * booksPerPage + 1;
+  const indexOfLastBookDisplay = Math.min(
+    currentPage * booksPerPage,
+    totalBooksCount
+  );
+
   if (loading || borrowSliceLoading) {
     return (
       <div className="text-center mt-20 text-xl font-inter text-gray-700">
@@ -221,8 +223,10 @@ const BookManagement = () => {
           </div>
         </header>
 
-        {filteredBooks.length > 0 ? (
-          currentBooks.length > 0 ? (
+        {/* MODIFIED: Check totalBooksCount instead of filteredBooks.length */}
+        {totalBooksCount > 0 ? (
+          // MODIFIED: Map directly over 'books' from Redux, as it's already paginated
+          books.length > 0 ? (
             <div className="mt-6 overflow-x-auto bg-white rounded-2xl shadow-xl">
               <table className="min-w-full border-collapse">
                 <thead>
@@ -245,83 +249,88 @@ const BookManagement = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {currentBooks.map((book, index) => (
-                    <tr
-                      key={book._id}
-                      className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                    >
-                      <td className="px-4 py-4 sm:px-6 text-gray-800">
-                        {indexOfFirstBook + index + 1}{" "}
-                        {/* Corrected ID for pagination */}
-                      </td>
-                      <td className="px-4 py-4 sm:px-6 text-gray-800 font-medium">
-                        {book.title}
-                      </td>
-                      <td className="px-4 py-4 sm:px-6 text-gray-700">
-                        {book.author}
-                      </td>
-                      {isAuthenticated && user?.role === "Admin" && (
-                        <td className="px-4 py-4 sm:px-6 text-gray-700 hidden sm:table-cell">
-                          {book.quantity}
+                  {books.map(
+                    (
+                      book,
+                      index // MODIFIED: Map 'books' directly
+                    ) => (
+                      <tr
+                        key={book._id}
+                        className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                      >
+                        <td className="px-4 py-4 sm:px-6 text-gray-800">
+                          {indexOfFirstBookDisplay + index}{" "}
+                          {/* Corrected ID for pagination display */}
                         </td>
-                      )}
-                      <td className="px-4 py-4 sm:px-6 text-gray-700 hidden md:table-cell">
-                        $ {book.price}
-                      </td>
-                      <td className="px-4 py-4 sm:px-6">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            book.availability
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
-                        >
-                          {book.availability ? "Available" : "Unavailable"}
-                        </span>
-                      </td>
-                      {isAuthenticated && user?.role === "Admin" && (
-                        <td className="px-4 py-4 sm:px-6 flex gap-2 sm:gap-3 my-auto justify-center">
-                          <button
-                            onClick={() => openReadPopup(book._id)}
-                            title="Read Book"
-                            aria-label={`Read details for ${book.title}`}
-                            className="p-2 rounded-full hover:bg-blue-100 text-blue-600 transition duration-200 transform hover:scale-110"
-                          >
-                            <BookA className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              console.log("Button clicked", book._id);
-                              openRecordBookPopup(book._id);
-                            }}
-                            title="Record Book"
-                            aria-label={`Record book activity for ${book.title}`}
-                            className="p-2 rounded-full hover:bg-green-100 text-green-600 transition duration-200 transform hover:scale-110"
-                          >
-                            <NotebookPen className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => openEditBookPopup(book._id)}
-                            title="Edit Book"
-                            aria-label={`Edit details for ${book.title}`}
-                            className="p-2 rounded-full hover:bg-yellow-100 text-yellow-600 transition duration-200 transform hover:scale-110"
-                          >
-                            <Pencil className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() =>
-                              openDeleteBookConfirmation(book._id, book.title)
-                            }
-                            title="Delete Book"
-                            aria-label={`Delete ${book.title}`}
-                            className="p-2 rounded-full hover:bg-red-100 text-red-600 transition duration-200 transform hover:scale-110"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
+                        <td className="px-4 py-4 sm:px-6 text-gray-800 font-medium">
+                          {book.title}
                         </td>
-                      )}
-                    </tr>
-                  ))}
+                        <td className="px-4 py-4 sm:px-6 text-gray-700">
+                          {book.author}
+                        </td>
+                        {isAuthenticated && user?.role === "Admin" && (
+                          <td className="px-4 py-4 sm:px-6 text-gray-700 hidden sm:table-cell">
+                            {book.quantity}
+                          </td>
+                        )}
+                        <td className="px-4 py-4 sm:px-6 text-gray-700 hidden md:table-cell">
+                          $ {book.price}
+                        </td>
+                        <td className="px-4 py-4 sm:px-6">
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              book.availability
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {book.availability ? "Available" : "Unavailable"}
+                          </span>
+                        </td>
+                        {isAuthenticated && user?.role === "Admin" && (
+                          <td className="px-4 py-4 sm:px-6 flex gap-2 sm:gap-3 my-auto justify-center">
+                            <button
+                              onClick={() => openReadPopup(book._id)}
+                              title="Read Book"
+                              aria-label={`Read details for ${book.title}`}
+                              className="p-2 rounded-full hover:bg-blue-100 text-blue-600 transition duration-200 transform hover:scale-110"
+                            >
+                              <BookA className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                console.log("Button clicked", book._id);
+                                openRecordBookPopup(book._id);
+                              }}
+                              title="Record Book"
+                              aria-label={`Record book activity for ${book.title}`}
+                              className="p-2 rounded-full hover:bg-green-100 text-green-600 transition duration-200 transform hover:scale-110"
+                            >
+                              <NotebookPen className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => openEditBookPopup(book._id)}
+                              title="Edit Book"
+                              aria-label={`Edit details for ${book.title}`}
+                              className="p-2 rounded-full hover:bg-yellow-100 text-yellow-600 transition duration-200 transform hover:scale-110"
+                            >
+                              <Pencil className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() =>
+                                openDeleteBookConfirmation(book._id, book.title)
+                              }
+                              title="Delete Book"
+                              aria-label={`Delete ${book.title}`}
+                              className="p-2 rounded-full hover:bg-red-100 text-red-600 transition duration-200 transform hover:scale-110"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    )
+                  )}
                 </tbody>
               </table>
             </div>
@@ -336,13 +345,12 @@ const BookManagement = () => {
           </h3>
         )}
 
-        {/* Pagination Controls */}
-        {filteredBooks.length > 0 && ( // Only show pagination if there are filtered books
+        {/* Pagination Controls - MODIFIED: Use totalBooksCount */}
+        {totalBooksCount > 0 && ( // Only show pagination if there are filtered books
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8">
             <div className="text-gray-700 text-lg font-semibold">
-              Results: {Math.min(indexOfFirstBook + 1, filteredBooks.length)} -{" "}
-              {Math.min(indexOfLastBook, filteredBooks.length)} of{" "}
-              {filteredBooks.length}
+              Results: {indexOfFirstBookDisplay} - {indexOfLastBookDisplay} of{" "}
+              {totalBooksCount}
             </div>
             <div className="flex justify-center items-center gap-2">
               <button
@@ -384,7 +392,8 @@ const BookManagement = () => {
           onClose={() => {
             dispatch(toggleEditBookPopup());
             setEditBook(null);
-            dispatch(fetchAllBooks());
+            // Re-fetch books to update the list after editing
+            dispatch(fetchAllBooks(currentPage, booksPerPage, searchedKeyword));
           }}
         />
       )}
@@ -396,7 +405,8 @@ const BookManagement = () => {
             dispatch(toggleDeleteBookPopup());
             setDeleteBookId(null);
             setDeleteBookTitle("");
-            dispatch(fetchAllBooks());
+            // Re-fetch books to update the list after deleting
+            dispatch(fetchAllBooks(currentPage, booksPerPage, searchedKeyword));
           }}
         />
       )}

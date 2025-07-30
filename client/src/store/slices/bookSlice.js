@@ -6,6 +6,8 @@ const initialState = {
   error: null,
   message: null,
   books: [],
+  totalBooksCount: 0, // NEW: To store the total count of books (for pagination)
+  totalPages: 0,     // NEW: To store the total number of pages
 };
 
 const bookSlice = createSlice({
@@ -20,11 +22,16 @@ const bookSlice = createSlice({
     },
     fetchBooksSuccess: (state, action) => {
       state.loading = false;
-      state.books = action.payload;
+      state.books = action.payload.books; // Payload now contains 'books' array
+      state.totalBooksCount = action.payload.totalBooksCount; // NEW: Get total count from server
+      state.totalPages = action.payload.totalPages;         // NEW: Get total pages from server
     },
     fetchBooksFailed: (state, action) => {
       state.loading = false;
       state.error = action.payload;
+      state.books = []; // Clear books on failure
+      state.totalBooksCount = 0; // NEW: Reset total count on failure
+      state.totalPages = 0;     // NEW: Reset total pages on failure
     },
 
     // Add book
@@ -66,7 +73,11 @@ const bookSlice = createSlice({
     deleteBookSuccess: (state, action) => {
       state.loading = false;
       state.message = action.payload.message;
+      // For server-side pagination, we generally re-fetch data after delete
+      // so the local filter might not be strictly needed if re-fetch happens immediately.
+      // However, keeping it for immediate UI update if desired before re-fetch.
       state.books = state.books.filter(book => book._id !== action.payload.bookId);
+      // Note: totalBooksCount and totalPages will be updated on the next fetchAllBooks
     },
     deleteBookFailed: (state, action) => {
       state.loading = false;
@@ -86,13 +97,18 @@ const bookSlice = createSlice({
 // Async Actions
 // -----------------
 
-export const fetchAllBooks = () => async (dispatch) => {
+// MODIFIED: fetchAllBooks now accepts page, limit, and keyword parameters
+export const fetchAllBooks = (page = 1, limit = 15, keyword = '') => async (dispatch) => {
   dispatch(bookSlice.actions.fetchBooksRequest());
   try {
-    const { data } = await axios.get("http://localhost:4000/api/v1/book/all", {
-      withCredentials: true,
-    });
-    dispatch(bookSlice.actions.fetchBooksSuccess(data.books));
+    const { data } = await axios.get(
+      `http://localhost:4000/api/v1/book/all?page=${page}&limit=${limit}&keyword=${keyword}`,
+      {
+        withCredentials: true,
+      }
+    );
+    // The server is expected to return { books: [], totalBooksCount: number, totalPages: number }
+    dispatch(bookSlice.actions.fetchBooksSuccess(data));
   } catch (err) {
     dispatch(bookSlice.actions.fetchBooksFailed(err.response?.data?.message || "Failed to fetch books"));
   }
@@ -107,7 +123,6 @@ export const addBook = (data) => async (dispatch) => {
         "Content-Type": "application/json",
       },
     });
-    // Renamed 'data' to 'responseData' to avoid confusion with the 'data' argument of the thunk
     dispatch(bookSlice.actions.addBookSuccess(responseData.message));
   } catch (err) {
     dispatch(bookSlice.actions.addBookFailed(err.response?.data?.message || "Failed to add book"));
