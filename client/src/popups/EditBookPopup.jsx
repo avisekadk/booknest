@@ -26,9 +26,7 @@ const EditBookPopup = ({ book, onClose }) => {
     e.preventDefault();
 
     if (!title || !author || !description || quantity <= 0 || price <= 0) {
-      toast.error(
-        "Please fill all fields and ensure quantity/price are positive."
-      );
+      toast.error("Please fill all fields and ensure quantity/price are positive.");
       return;
     }
 
@@ -60,15 +58,10 @@ const EditBookPopup = ({ book, onClose }) => {
         >
           <X size={24} />
         </button>
-        <h3 className="text-3xl font-extrabold text-[#2C3E50] mb-6 text-center">
-          Edit Book
-        </h3>
+        <h3 className="text-3xl font-extrabold text-[#2C3E50] mb-6 text-center">Edit Book</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="mb-4">
-            <label
-              htmlFor="title"
-              className="block text-sm font-semibold text-gray-700 mb-1"
-            >
+            <label htmlFor="title" className="block text-sm font-semibold text-gray-700 mb-1">
               Book Title
             </label>
             <input
@@ -81,10 +74,7 @@ const EditBookPopup = ({ book, onClose }) => {
             />
           </div>
           <div className="mb-4">
-            <label
-              htmlFor="author"
-              className="block text-sm font-semibold text-gray-700 mb-1"
-            >
+            <label htmlFor="author" className="block text-sm font-semibold text-gray-700 mb-1">
               Author
             </label>
             <input
@@ -97,10 +87,7 @@ const EditBookPopup = ({ book, onClose }) => {
             />
           </div>
           <div className="mb-4">
-            <label
-              htmlFor="description"
-              className="block text-sm font-semibold text-gray-700 mb-1"
-            >
+            <label htmlFor="description" className="block text-sm font-semibold text-gray-700 mb-1">
               Description
             </label>
             <textarea
@@ -114,10 +101,7 @@ const EditBookPopup = ({ book, onClose }) => {
           </div>
           <div className="grid grid-cols-2 gap-4 mb-8">
             <div>
-              <label
-                htmlFor="quantity"
-                className="block text-sm font-semibold text-gray-700 mb-1"
-              >
+              <label htmlFor="quantity" className="block text-sm font-semibold text-gray-700 mb-1">
                 Quantity
               </label>
               <input
@@ -131,10 +115,7 @@ const EditBookPopup = ({ book, onClose }) => {
               />
             </div>
             <div>
-              <label
-                htmlFor="price"
-                className="block text-sm font-semibold text-gray-700 mb-1"
-              >
+              <label htmlFor="price" className="block text-sm font-semibold text-gray-700 mb-1">
                 Price
               </label>
               <input
