@@ -1,29 +1,14 @@
-import React, { useState, useEffect } from "react"; // Added useEffect
-import { useSelector, useDispatch } from "react-redux"; // Added useDispatch
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
 import Header from "../layout/Header";
-import { fetchAllUsers } from "../store/slices/userSlice"; // Import fetchAllUsers
 
 const Users = () => {
-  const dispatch = useDispatch();
-  // MODIFIED: Get totalUsersCount and totalPages from Redux state
-  const { users, loading, totalUsersCount, totalPages } = useSelector(
-    (state) => state.user
-  );
+  const { users } = useSelector((state) => state.user);
   const [searchedKeyword, setSearchedKeyword] = useState("");
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const [usersPerPage] = useState(15); // This value is sent to the server
-
-  useEffect(() => {
-    // MODIFIED: Pass currentPage, usersPerPage, and searchedKeyword to fetchAllUsers
-    dispatch(fetchAllUsers(currentPage, usersPerPage, searchedKeyword));
-  }, [dispatch, currentPage, usersPerPage, searchedKeyword]); // Added dependencies
-
-  useEffect(() => {
-    // Reset page to 1 when search keyword changes
-    setCurrentPage(1);
-  }, [searchedKeyword]); // Trigger re-fetch via main useEffect
+  const [usersPerPage] = useState(15); // Set to 15 users per page
 
   const formatDate = (timeStamp) => {
     const date = new Date(timeStamp);
@@ -37,8 +22,23 @@ const Users = () => {
     return result;
   };
 
-  // REMOVED: filteredUsers and currentUsers local logic
-  // These are now handled by the server and available directly in 'users' from Redux.
+  // Filter users based on search keyword (name or email)
+  const filteredUsers = users.filter((user) => {
+    const matchesName = user.name
+      .toLowerCase()
+      .includes(searchedKeyword.toLowerCase());
+    const matchesEmail = user.email
+      .toLowerCase()
+      .includes(searchedKeyword.toLowerCase());
+    return (matchesName || matchesEmail) && user.role === "User";
+  });
+
+  // Pagination calculations
+  const indexOfLastUser = currentPage * usersPerPage;
+  const indexOfFirstUser = indexOfLastUser - usersPerPage;
+  const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
+
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -117,22 +117,6 @@ const Users = () => {
     );
   };
 
-  // Calculate display indices for "Results: X - Y of Z"
-  const indexOfFirstUserDisplay = (currentPage - 1) * usersPerPage + 1;
-  const indexOfLastUserDisplay = Math.min(
-    currentPage * usersPerPage,
-    totalUsersCount
-  );
-
-  if (loading) {
-    // Added loading check
-    return (
-      <div className="text-center mt-20 text-xl font-inter text-gray-700">
-        Loading users...
-      </div>
-    );
-  }
-
   return (
     <main className="relative flex-1 p-6 pt-28 font-inter bg-gray-100 min-h-screen">
       <Header />
@@ -148,8 +132,7 @@ const Users = () => {
           onChange={(e) => setSearchedKeyword(e.target.value)}
         />
       </header>
-      {/* MODIFIED: Check totalUsersCount instead of filteredUsers.length */}
-      {totalUsersCount > 0 ? (
+      {filteredUsers && filteredUsers.length > 0 ? (
         <div className="mt-6 overflow-x-auto bg-white rounded-2xl shadow-xl">
           <table className="min-w-full border-collapse">
             <thead>
@@ -171,8 +154,8 @@ const Users = () => {
               </tr>
             </thead>
             <tbody>
-              {users.map((user, index) => {
-                // MODIFIED: Map over 'users' directly
+              {currentUsers.map((user, index) => {
+                // Use currentUsers for mapping
                 // Calculate number of returned books for the current user
                 const returnedBooksCount =
                   user?.borrowedBooks?.filter((book) => book.returned).length ||
@@ -184,7 +167,7 @@ const Users = () => {
                     className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
                   >
                     <td className="px-4 py-4 sm:px-6 text-gray-800">
-                      {indexOfFirstUserDisplay + index}{" "}
+                      {indexOfFirstUser + index + 1}{" "}
                       {/* Corrected ID for pagination */}
                     </td>
                     <td className="px-4 py-4 sm:px-6 text-gray-800 font-medium">
@@ -218,12 +201,13 @@ const Users = () => {
         </h3>
       )}
 
-      {/* Pagination Controls - MODIFIED: Use totalUsersCount */}
-      {totalUsersCount > 0 && ( // Only show pagination if there are filtered users
+      {/* Pagination Controls */}
+      {filteredUsers.length > 0 && ( // Only show pagination if there are filtered users
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8">
           <div className="text-gray-700 text-lg font-semibold">
-            Results: {indexOfFirstUserDisplay} - {indexOfLastUserDisplay} of{" "}
-            {totalUsersCount}
+            Results: {Math.min(indexOfFirstUser + 1, filteredUsers.length)} -{" "}
+            {Math.min(indexOfLastUser, filteredUsers.length)} of{" "}
+            {filteredUsers.length}
           </div>
           <div className="flex justify-center items-center gap-2">
             <button

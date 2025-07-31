@@ -3,7 +3,7 @@ import { PiKeyReturnBold } from "react-icons/pi";
 import { FaSquareCheck } from "react-icons/fa6";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import { fetchAllBooks } from "../store/slices/bookSlice"; // Still needed for popups
+import { fetchAllBooks } from "../store/slices/bookSlice";
 import {
   fetchAllBorrowedBooks,
   resetBorrowSlice,
@@ -14,22 +14,16 @@ import Header from "../layout/Header";
 const Catalog = () => {
   const dispatch = useDispatch();
 
-  // MODIFIED: Get totalBorrowedBooksCount and totalPages from Redux state
-  const {
-    loading,
-    error,
-    allBorrowedBooks,
-    message,
-    totalBorrowedBooksCount,
-    totalPages,
-  } = useSelector((state) => state.borrow);
+  const { loading, error, allBorrowedBooks, message } = useSelector(
+    (state) => state.borrow
+  );
 
   const [filter, setFilter] = useState("borrowed");
-  const [searchedKeyword, setSearchedKeyword] = useState(""); // State for search keyword
+  const [searchedKeyword, setSearchedKeyword] = useState(""); // New state for search keyword
 
-  // Pagination states (still client-side for managing current page)
+  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const [booksPerPage] = useState(15); // This value is sent to the server
+  const [booksPerPage] = useState(15); // Set to 15 books per page, as requested.
 
   const formatDate = (timeStamp) => {
     const date = new Date(timeStamp);
@@ -47,11 +41,41 @@ const Catalog = () => {
     ).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
   };
 
-  // REMOVED: currentDate and filteredAndSearchedBooks logic
-  // This filtering/searching is now done on the server.
-  // 'allBorrowedBooks' from Redux is already the paginated and filtered list.
+  const currentDate = new Date();
 
-  // Pagination calculations (now based on server-provided totalPages)
+  // Filter books based on borrowed/overdue status and search keyword (user name or email)
+  const filteredAndSearchedBooks =
+    allBorrowedBooks?.filter((book) => {
+      const dueDate = new Date(book.dueDate);
+      const isBorrowed = dueDate > currentDate && !book.returnDate;
+      const isOverdue = dueDate <= currentDate && !book.returnDate;
+
+      // Apply filter based on 'borrowed' or 'overdue'
+      const matchesFilter = filter === "borrowed" ? isBorrowed : isOverdue;
+
+      // Apply search if a search term is present
+      const matchesSearch = searchedKeyword
+        ? book?.user?.name
+            ?.toLowerCase()
+            .includes(searchedKeyword.toLowerCase()) ||
+          book?.user?.email
+            ?.toLowerCase()
+            .includes(searchedKeyword.toLowerCase())
+        : true;
+
+      return matchesFilter && matchesSearch;
+    }) || []; // Ensure it's an array even if allBorrowedBooks is null/undefined
+
+  // Pagination calculations - based on the *entire filtered list*
+  const indexOfLastBook = currentPage * booksPerPage;
+  const indexOfFirstBook = indexOfLastBook - booksPerPage;
+  const currentBooksOnPage = filteredAndSearchedBooks.slice(
+    indexOfFirstBook,
+    indexOfLastBook
+  );
+
+  const totalPages = Math.ceil(filteredAndSearchedBooks.length / booksPerPage);
+
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const renderPageNumbers = () => {
@@ -136,7 +160,7 @@ const Catalog = () => {
 
   // Open popup with selected book and user info
   const openReturnBookPopup = (bookId, email) => {
-    console.log("Opening popup with bookId:", bookId, "and email:", email);
+    console.log("Opening popup with bookId:", bookId, "and email:", email); // <-- DEBUG LOG
     setBorrowedBookId(bookId);
     setEmail(email);
     setShowReturnPopup(true);
@@ -150,44 +174,26 @@ const Catalog = () => {
   };
 
   useEffect(() => {
-    // MODIFIED: Pass pagination, filter, and search keyword to fetchAllBorrowedBooks
-    dispatch(
-      fetchAllBorrowedBooks(currentPage, booksPerPage, filter, searchedKeyword)
-    );
-    dispatch(fetchAllBooks()); // Still needed for popups, etc.
-  }, [dispatch, currentPage, booksPerPage, filter, searchedKeyword]); // Added dependencies
+    dispatch(fetchAllBorrowedBooks());
+    dispatch(fetchAllBooks());
+  }, [dispatch]);
 
+  // Reset page to 1 when filter or search keyword changes
   useEffect(() => {
-    // Reset page to 1 when filter or search keyword changes
     setCurrentPage(1);
-  }, [filter, searchedKeyword]); // Trigger re-fetch via main useEffect
+  }, [filter, searchedKeyword]);
 
   useEffect(() => {
     if (message) {
       toast.success(message);
-      // Re-fetch after successful action to update the list
-      dispatch(
-        fetchAllBorrowedBooks(
-          currentPage,
-          booksPerPage,
-          filter,
-          searchedKeyword
-        )
-      );
       dispatch(fetchAllBooks());
+      dispatch(fetchAllBorrowedBooks());
       dispatch(resetBorrowSlice());
     }
     if (error) {
       dispatch(resetBorrowSlice());
     }
   }, [dispatch, error, message]);
-
-  // Calculate display indices for "Results: X - Y of Z"
-  const indexOfFirstBookDisplay = (currentPage - 1) * booksPerPage + 1;
-  const indexOfLastBookDisplay = Math.min(
-    currentPage * booksPerPage,
-    totalBorrowedBooksCount
-  );
 
   return (
     <>
@@ -230,7 +236,7 @@ const Catalog = () => {
           <p className="mt-5 text-center text-xl font-inter text-gray-700">
             Loading catalog data...
           </p>
-        ) : totalBorrowedBooksCount > 0 ? ( // MODIFIED: Check total count from Redux
+        ) : filteredAndSearchedBooks.length > 0 ? ( // Check the overall filtered and searched list
           <div className="mt-6 overflow-x-auto bg-white rounded-2xl shadow-xl">
             <table className="min-w-full border-collapse">
               <thead>
@@ -247,17 +253,17 @@ const Catalog = () => {
                 </tr>
               </thead>
               <tbody>
-                {allBorrowedBooks.map(
+                {currentBooksOnPage.map(
                   (
                     book,
-                    index // MODIFIED: Map over allBorrowedBooks (which is now paginated)
+                    index // Map over the paginated list
                   ) => (
                     <tr
                       key={book._id}
                       className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
                     >
                       <td className="px-6 py-4 text-gray-800">
-                        {indexOfFirstBookDisplay + index}{" "}
+                        {indexOfFirstBook + index + 1}{" "}
                         {/* Corrected ID for pagination */}
                       </td>
                       <td className="px-6 py-4 text-gray-800 font-medium">
@@ -307,12 +313,14 @@ const Catalog = () => {
           </h3>
         )}
 
-        {/* Pagination Controls - MODIFIED: Use totalBorrowedBooksCount */}
-        {totalBorrowedBooksCount > 0 && ( // Only show pagination if there are filtered books
+        {/* Pagination Controls */}
+        {filteredAndSearchedBooks.length > 0 && ( // Only show pagination if there are filtered books
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8">
             <div className="text-gray-700 text-lg font-semibold">
-              Results: {indexOfFirstBookDisplay} - {indexOfLastBookDisplay} of{" "}
-              {totalBorrowedBooksCount}
+              Results:{" "}
+              {Math.min(indexOfFirstBook + 1, filteredAndSearchedBooks.length)}{" "}
+              - {Math.min(indexOfLastBook, filteredAndSearchedBooks.length)} of{" "}
+              {filteredAndSearchedBooks.length}
             </div>
             <div className="flex justify-center items-center gap-2">
               <button
@@ -344,18 +352,7 @@ const Catalog = () => {
         <ReturnBookPopup
           bookId={borrowedBookId}
           userEmail={email}
-          onClose={() => {
-            closeReturnBookPopup();
-            // Re-fetch after return to update the list
-            dispatch(
-              fetchAllBorrowedBooks(
-                currentPage,
-                booksPerPage,
-                filter,
-                searchedKeyword
-              )
-            );
-          }}
+          onClose={closeReturnBookPopup}
         />
       )}
     </>
