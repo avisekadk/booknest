@@ -53,65 +53,138 @@ export const recordBorrowBook = catchAsyncErrors(async (req, res, next) => {
 
 });
 
+
+// export const returnBorrowBooks = catchAsyncErrors(async (req, res, next) => {
+//     const { borrowId } = req.params;  // rename param for clarity
+//     const { email } = req.body;
+
+//     // Find borrow record by _id (borrowId)
+//     const borrowRecord = await Borrow.findById(borrowId);
+
+//     if (!borrowRecord) {
+//         return next(new ErrorHandler("Borrow record not found.", 404));
+//     }
+
+//     // Check if user email matches and book is not returned yet
+//     if (borrowRecord.user.email !== email) {
+//         return next(new ErrorHandler("User email mismatch.", 403));
+//     }
+
+//     if (borrowRecord.returnDate) {
+//         return next(new ErrorHandler("Book already returned.", 400));
+//     }
+
+//     // Update returnDate and calculate fine
+//     borrowRecord.returnDate = new Date();
+//     const fine = calculateFine(borrowRecord.dueDate);
+//     borrowRecord.fine = fine;
+//     await borrowRecord.save();
+
+//     // Update book quantity and availability
+//     const book = await Book.findById(borrowRecord.book);
+//     if (!book) {
+//         return next(new ErrorHandler("Book not found.", 404));
+//     }
+//     book.quantity += 1;
+//     book.availability = book.quantity > 0;
+//     await book.save();
+
+//     // Update user borrowedBooks array to mark as returned
+//     const user = await User.findOne({ email, accountVerified: true });
+//     if (!user) {
+//         return next(new ErrorHandler("User not found.", 404));
+//     }
+
+//     const borrowedBook = user.borrowedBooks.find(
+//         (b) => b.bookId.toString() === book._id.toString() && b.returned === false
+//     );
+
+//     if (!borrowedBook) {
+//         return next(new ErrorHandler("You have not borrowed this book.", 400));
+//     }
+
+//     borrowedBook.returned = true;
+//     await user.save();
+
+//     res.status(200).json({
+//         success: true,
+//         message: fine !== 0
+//             ? `The book has been returned successfully. The total charges, including fine, are $${fine + book.price}`
+//             : `The book has been returned successfully. The total charges are $${book.price}`,
+//     });
+// });
 export const returnBorrowBooks = catchAsyncErrors(async (req, res, next) => {
-    const { borrowId } = req.params;  // rename param for clarity
-    const { email } = req.body;
+  const { borrowId } = req.params;
+  const { email } = req.body;
 
-    // Find borrow record by _id (borrowId)
-    const borrowRecord = await Borrow.findById(borrowId);
+  console.log(">>> returnBorrowBooks start:", { borrowId, email });
 
-    if (!borrowRecord) {
-        return next(new ErrorHandler("Borrow record not found.", 404));
-    }
+  const borrowRecord = await Borrow.findById(borrowId).populate("user").populate("book");
+  console.log("Found borrowRecord:", borrowRecord);
 
-    // Check if user email matches and book is not returned yet
-    if (borrowRecord.user.email !== email) {
-        return next(new ErrorHandler("User email mismatch.", 403));
-    }
+  if (!borrowRecord) {
+    console.error("Borrow record not found for ID:", borrowId);
+    return next(new ErrorHandler("Borrow record not found.", 404));
+  }
 
-    if (borrowRecord.returnDate) {
-        return next(new ErrorHandler("Book already returned.", 400));
-    }
-
-    // Update returnDate and calculate fine
-    borrowRecord.returnDate = new Date();
-    const fine = calculateFine(borrowRecord.dueDate);
-    borrowRecord.fine = fine;
-    await borrowRecord.save();
-
-    // Update book quantity and availability
-    const book = await Book.findById(borrowRecord.book);
-    if (!book) {
-        return next(new ErrorHandler("Book not found.", 404));
-    }
-    book.quantity += 1;
-    book.availability = book.quantity > 0;
-    await book.save();
-
-    // Update user borrowedBooks array to mark as returned
-    const user = await User.findOne({ email, accountVerified: true });
-    if (!user) {
-        return next(new ErrorHandler("User not found.", 404));
-    }
-
-    const borrowedBook = user.borrowedBooks.find(
-        (b) => b.bookId.toString() === book._id.toString() && b.returned === false
-    );
-
-    if (!borrowedBook) {
-        return next(new ErrorHandler("You have not borrowed this book.", 400));
-    }
-
-    borrowedBook.returned = true;
-    await user.save();
-
-    res.status(200).json({
-        success: true,
-        message: fine !== 0
-            ? `The book has been returned successfully. The total charges, including fine, are $${fine + book.price}`
-            : `The book has been returned successfully. The total charges are $${book.price}`,
+  if (borrowRecord.user?.email !== email) {
+    console.error("Email mismatch:", {
+      provided: email,
+      actual: borrowRecord.user?.email,
     });
+    return next(new ErrorHandler("User email mismatch.", 403));
+  }
+
+  if (borrowRecord.returnDate) {
+    console.error("Book already returned at:", borrowRecord.returnDate);
+    return next(new ErrorHandler("Book already returned.", 400));
+  }
+
+  borrowRecord.returnDate = new Date();
+  let fine = calculateFine(borrowRecord.dueDate);
+  borrowRecord.fine = fine;
+  await borrowRecord.save();
+
+  const book = borrowRecord.book;
+  if (!book) {
+    console.error("Borrow record has no book populated.");
+    return next(new ErrorHandler("Book not found.", 404));
+  }
+
+  book.quantity += 1;
+  book.availability = book.quantity > 0;
+  await book.save();
+
+  const user = await User.findOne({ email, accountVerified: true });
+  console.log("Found user:", user);
+  if (!user) {
+    return next(new ErrorHandler("User not found.", 404));
+  }
+
+  const borrowedItem = user.borrowedBooks.find(
+    (b) => b.bookId.toString() === book._id.toString() && b.returned === false
+  );
+  console.log("Borrowed item matched:", borrowedItem);
+
+  if (!borrowedItem) {
+    return next(new ErrorHandler("You have not borrowed this book.", 400));
+  }
+
+  borrowedItem.returned = true;
+  await user.save();
+
+  console.log("Successfully processed return for borrowId:", borrowId);
+
+  res.status(200).json({
+    success: true,
+    message:
+      fine !== 0
+        ? `Book returned successfully. Total charges: $${fine + book.price}`
+        : `Book returned successfully. Total charges: $${book.price}`,
+  });
 });
+
+
 
 export const borrowBooks = catchAsyncErrors(async (req, res, next) => {
     const {borrowedBooks} = req.user;

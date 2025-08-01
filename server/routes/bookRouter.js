@@ -10,4 +10,5 @@ router.get("/all", isAuthenticated, getAllBook);
 router.delete("/delete/:id", isAuthenticated, isAuthorized("Admin"), deleteBook);
 router.put("/admin/update/:id", isAuthenticated, isAuthorized("Admin"), updateBook);
 
+
 export default router;
