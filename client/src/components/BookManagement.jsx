@@ -40,16 +40,16 @@ const BookManagement = () => {
     message: borrowSliceMessage,
   } = useSelector((state) => state.borrow);
 
-  // --- NEW: State for pagination and search ---
-  const [currentPage, setCurrentPage] = useState(1);
-  const [booksPerPage] = useState(10); // Number of books to display per page
-  const [searchedKeyword, setSearchedKeyword] = useState("");
-
   const [readBook, setReadBook] = useState({});
   const [borrowBookId, setBorrowBookId] = useState("");
+  const [searchedKeyword, setSearchedKeyword] = useState("");
   const [editBook, setEditBook] = useState(null);
   const [deleteBookId, setDeleteBookId] = useState(null);
   const [deleteBookTitle, setDeleteBookTitle] = useState("");
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [booksPerPage] = useState(15); // Set to 15 books per page, as requested.
 
   useEffect(() => {
     dispatch(fetchAllBooks());
@@ -89,26 +89,97 @@ const BookManagement = () => {
 
   const handleSearch = (e) => {
     setSearchedKeyword(e.target.value.toLowerCase());
-    setCurrentPage(1); // Reset to the first page on a new search
+    setCurrentPage(1); // Reset to first page on new search
   };
 
-  // Filter books based on search keyword
-  const searchedBooks = books.filter(
+  const filteredBooks = books.filter(
     (book) =>
       book.title.toLowerCase().includes(searchedKeyword) ||
       book.author.toLowerCase().includes(searchedKeyword)
   );
 
-  // --- NEW: Pagination Logic ---
+  // Pagination calculations
   const indexOfLastBook = currentPage * booksPerPage;
   const indexOfFirstBook = indexOfLastBook - booksPerPage;
-  const currentBooks = searchedBooks.slice(indexOfFirstBook, indexOfLastBook);
-  const totalPages = Math.ceil(searchedBooks.length / booksPerPage);
+  const currentBooks = filteredBooks.slice(indexOfFirstBook, indexOfLastBook);
 
-  const paginate = (pageNumber) => {
-    if (pageNumber > 0 && pageNumber <= totalPages) {
-      setCurrentPage(pageNumber);
+  const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  const renderPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPageButtons = 3; // Number of visible numeric page buttons around current page (excluding 1st and last)
+
+    if (totalPages <= maxPageButtons + 2) {
+      // If total pages are few, show all of them
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      pageNumbers.push(1); // Always show the first page
+
+      // Determine the range of middle pages to show
+      let startRange = Math.max(
+        2,
+        currentPage - Math.floor(maxPageButtons / 2)
+      );
+      let endRange = Math.min(
+        totalPages - 1,
+        currentPage + Math.floor(maxPageButtons / 2)
+      );
+
+      // Adjust start/end range if current page is near the boundaries
+      if (currentPage - 1 <= Math.floor(maxPageButtons / 2)) {
+        endRange = maxPageButtons + 1; // Show more pages at the beginning
+      } else if (totalPages - currentPage <= Math.floor(maxPageButtons / 2)) {
+        startRange = totalPages - maxPageButtons; // Show more pages at the end
+      }
+
+      // Add leading ellipsis
+      if (startRange > 2) {
+        pageNumbers.push("...");
+      }
+
+      // Add middle pages
+      for (let i = startRange; i <= endRange; i++) {
+        pageNumbers.push(i);
+      }
+
+      // Add trailing ellipsis
+      if (endRange < totalPages - 1) {
+        pageNumbers.push("...");
+      }
+
+      // Always show the last page
+      if (!pageNumbers.includes(totalPages)) {
+        pageNumbers.push(totalPages);
+      }
     }
+
+    return pageNumbers.map((number, idx) =>
+      number === "..." ? (
+        <span
+          key={`dots-${idx}`}
+          className="h-10 w-10 flex items-center justify-center text-gray-700"
+        >
+          ...
+        </span>
+      ) : (
+        <button
+          key={number}
+          onClick={() => paginate(number)}
+          className={`h-10 w-10 flex items-center justify-center rounded-lg font-semibold transition duration-200 ease-in-out border
+                      ${
+                        currentPage === number
+                          ? "bg-blue-600 text-white shadow-md border-blue-600" // Active state
+                          : "bg-white text-gray-700 hover:bg-gray-100 border-gray-300" // Inactive state
+                      }`}
+        >
+          {number}
+        </button>
+      )
+    );
   };
 
   if (loading || borrowSliceLoading) {
@@ -132,9 +203,9 @@ const BookManagement = () => {
               <button
                 onClick={() => dispatch(toggleAddBookPopup())}
                 className="py-3 px-6 rounded-lg font-bold text-white
-                               bg-gradient-to-r from-blue-500 to-blue-600
-                               hover:from-blue-600 hover:to-blue-700 transition duration-300 ease-in-out
-                               shadow-lg transform hover:scale-105 flex items-center justify-center gap-2"
+                           bg-gradient-to-r from-blue-500 to-blue-600
+                           hover:from-blue-600 hover:to-blue-700 transition duration-300 ease-in-out
+                           shadow-lg transform hover:scale-105 flex items-center justify-center gap-2"
               >
                 <span className="text-white text-3xl leading-none">+</span>
                 Add Book
@@ -142,7 +213,7 @@ const BookManagement = () => {
             )}
             <input
               type="text"
-              placeholder="Search books..."
+              placeholder="Search books by title or author..."
               className="w-full sm:w-52 px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
               value={searchedKeyword}
               onChange={handleSearch}
@@ -150,147 +221,109 @@ const BookManagement = () => {
           </div>
         </header>
 
-        {books && books.length > 0 ? (
-          searchedBooks.length > 0 ? (
-            <div className="mt-6">
-              <div className="overflow-x-auto bg-white rounded-2xl shadow-xl">
-                <table className="min-w-full border-collapse">
-                  <thead>
-                    <tr className="bg-blue-50 text-blue-800 font-semibold text-left">
-                      <th className="px-4 py-3 sm:px-6">ID</th>
-                      <th className="px-4 py-3 sm:px-6">Name</th>
-                      <th className="px-4 py-3 sm:px-6">Author</th>
-                      {isAuthenticated && user?.role === "Admin" && (
-                        <th className="px-4 py-3 sm:px-6 hidden sm:table-cell">
-                          Quantity
-                        </th>
-                      )}
-                      <th className="px-4 py-3 sm:px-6 hidden md:table-cell">
-                        Price
+        {filteredBooks.length > 0 ? (
+          currentBooks.length > 0 ? (
+            <div className="mt-6 overflow-x-auto bg-white rounded-2xl shadow-xl">
+              <table className="min-w-full border-collapse">
+                <thead>
+                  <tr className="bg-blue-50 text-blue-800 font-semibold text-left">
+                    <th className="px-4 py-3 sm:px-6">ID</th>
+                    <th className="px-4 py-3 sm:px-6">Name</th>
+                    <th className="px-4 py-3 sm:px-6">Author</th>
+                    {isAuthenticated && user?.role === "Admin" && (
+                      <th className="px-4 py-3 sm:px-6 hidden sm:table-cell">
+                        Quantity
                       </th>
-                      <th className="px-4 py-3 sm:px-6">Availability</th>
+                    )}
+                    <th className="px-4 py-3 sm:px-6 hidden md:table-cell">
+                      Price
+                    </th>
+                    <th className="px-4 py-3 sm:px-6">Availability</th>
+                    {isAuthenticated && user?.role === "Admin" && (
+                      <th className="px-4 py-3 sm:px-6 text-center">Actions</th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentBooks.map((book, index) => (
+                    <tr
+                      key={book._id}
+                      className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                    >
+                      <td className="px-4 py-4 sm:px-6 text-gray-800">
+                        {indexOfFirstBook + index + 1}{" "}
+                        {/* Corrected ID for pagination */}
+                      </td>
+                      <td className="px-4 py-4 sm:px-6 text-gray-800 font-medium">
+                        {book.title}
+                      </td>
+                      <td className="px-4 py-4 sm:px-6 text-gray-700">
+                        {book.author}
+                      </td>
                       {isAuthenticated && user?.role === "Admin" && (
-                        <th className="px-4 py-3 sm:px-6 text-center">
-                          Actions
-                        </th>
+                        <td className="px-4 py-4 sm:px-6 text-gray-700 hidden sm:table-cell">
+                          {book.quantity}
+                        </td>
+                      )}
+                      <td className="px-4 py-4 sm:px-6 text-gray-700 hidden md:table-cell">
+                        $ {book.price}
+                      </td>
+                      <td className="px-4 py-4 sm:px-6">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            book.availability
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {book.availability ? "Available" : "Unavailable"}
+                        </span>
+                      </td>
+                      {isAuthenticated && user?.role === "Admin" && (
+                        <td className="px-4 py-4 sm:px-6 flex gap-2 sm:gap-3 my-auto justify-center">
+                          <button
+                            onClick={() => openReadPopup(book._id)}
+                            title="Read Book"
+                            aria-label={`Read details for ${book.title}`}
+                            className="p-2 rounded-full hover:bg-blue-100 text-blue-600 transition duration-200 transform hover:scale-110"
+                          >
+                            <BookA className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              console.log("Button clicked", book._id);
+                              openRecordBookPopup(book._id);
+                            }}
+                            title="Record Book"
+                            aria-label={`Record book activity for ${book.title}`}
+                            className="p-2 rounded-full hover:bg-green-100 text-green-600 transition duration-200 transform hover:scale-110"
+                          >
+                            <NotebookPen className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => openEditBookPopup(book._id)}
+                            title="Edit Book"
+                            aria-label={`Edit details for ${book.title}`}
+                            className="p-2 rounded-full hover:bg-yellow-100 text-yellow-600 transition duration-200 transform hover:scale-110"
+                          >
+                            <Pencil className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() =>
+                              openDeleteBookConfirmation(book._id, book.title)
+                            }
+                            title="Delete Book"
+                            aria-label={`Delete ${book.title}`}
+                            className="p-2 rounded-full hover:bg-red-100 text-red-600 transition duration-200 transform hover:scale-110"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </td>
                       )}
                     </tr>
-                  </thead>
-                  <tbody>
-                    {/* --- CHANGED: Use currentBooks for mapping --- */}
-                    {currentBooks.map((book, index) => (
-                      <tr
-                        key={book._id}
-                        className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                      >
-                        <td className="px-4 py-4 sm:px-6 text-gray-800">
-                          {indexOfFirstBook + index + 1}
-                        </td>
-                        <td className="px-4 py-4 sm:px-6 text-gray-800 font-medium">
-                          {book.title}
-                        </td>
-                        <td className="px-4 py-4 sm:px-6 text-gray-700">
-                          {book.author}
-                        </td>
-                        {isAuthenticated && user?.role === "Admin" && (
-                          <td className="px-4 py-4 sm:px-6 text-gray-700 hidden sm:table-cell">
-                            {book.quantity}
-                          </td>
-                        )}
-                        <td className="px-4 py-4 sm:px-6 text-gray-700 hidden md:table-cell">
-                          Rs. {book.price}
-                        </td>
-                        <td className="px-4 py-4 sm:px-6">
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              book.availability
-                                ? "bg-green-100 text-green-800"
-                                : "bg-red-100 text-red-800"
-                            }`}
-                          >
-                            {book.availability ? "Available" : "Unavailable"}
-                          </span>
-                        </td>
-                        {isAuthenticated && user?.role === "Admin" && (
-                          <td className="px-4 py-4 sm:px-6 flex gap-2 sm:gap-3 my-auto justify-center">
-                            <button
-                              onClick={() => openReadPopup(book._id)}
-                              title="Read Book"
-                              aria-label={`Read details for ${book.title}`}
-                              className="p-2 rounded-full hover:bg-blue-100 text-blue-600 transition duration-200 transform hover:scale-110"
-                            >
-                              <BookA className="w-5 h-5" />
-                            </button>
-                            <button
-                              onClick={() => {
-                                console.log("Button clicked", book._id);
-                                openRecordBookPopup(book._id);
-                              }}
-                              title="Record Book"
-                              aria-label={`Record book activity for ${book.title}`}
-                              className="p-2 rounded-full hover:bg-green-100 text-green-600 transition duration-200 transform hover:scale-110"
-                            >
-                              <NotebookPen className="w-5 h-5" />
-                            </button>
-                            <button
-                              onClick={() => openEditBookPopup(book._id)}
-                              title="Edit Book"
-                              aria-label={`Edit details for ${book.title}`}
-                              className="p-2 rounded-full hover:bg-yellow-100 text-yellow-600 transition duration-200 transform hover:scale-110"
-                            >
-                              <Pencil className="w-5 h-5" />
-                            </button>
-                            <button
-                              onClick={() =>
-                                openDeleteBookConfirmation(book._id, book.title)
-                              }
-                              title="Delete Book"
-                              aria-label={`Delete ${book.title}`}
-                              className="p-2 rounded-full hover:bg-red-100 text-red-600 transition duration-200 transform hover:scale-110"
-                            >
-                              <Trash2 className="w-5 h-5" />
-                            </button>
-                          </td>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* --- NEW: Pagination Controls --- */}
-              {searchedBooks.length > booksPerPage && (
-                <div className="flex justify-center items-center mt-8 space-x-2">
-                  <button
-                    onClick={() => paginate(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="py-2 px-4 rounded-lg font-bold text-gray-700 bg-gray-200 hover:bg-gray-300 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-                  {Array.from({ length: totalPages }, (_, i) => (
-                    <button
-                      key={i + 1}
-                      onClick={() => paginate(i + 1)}
-                      className={`py-2 px-4 rounded-lg font-bold transition duration-300
-                      ${
-                        currentPage === i + 1
-                          ? "bg-blue-600 text-white shadow-md"
-                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                      }`}
-                    >
-                      {i + 1}
-                    </button>
                   ))}
-                  <button
-                    onClick={() => paginate(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className="py-2 px-4 rounded-lg font-bold text-gray-700 bg-gray-200 hover:bg-gray-300 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
+                </tbody>
+              </table>
             </div>
           ) : (
             <p className="mt-5 text-gray-600 text-lg text-center">
@@ -301,6 +334,38 @@ const BookManagement = () => {
           <h3 className="text-3xl mt-5 font-extrabold text-[#2C3E50] text-center">
             No books found in library!
           </h3>
+        )}
+
+        {/* Pagination Controls */}
+        {filteredBooks.length > 0 && ( // Only show pagination if there are filtered books
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8">
+            <div className="text-gray-700 text-lg font-semibold">
+              Results: {Math.min(indexOfFirstBook + 1, filteredBooks.length)} -{" "}
+              {Math.min(indexOfLastBook, filteredBooks.length)} of{" "}
+              {filteredBooks.length}
+            </div>
+            <div className="flex justify-center items-center gap-2">
+              <button
+                onClick={() => paginate(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="h-10 w-10 flex items-center justify-center rounded-lg bg-white text-gray-700 border border-gray-300 font-semibold shadow-sm
+                           hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed
+                           transition duration-200 ease-in-out"
+              >
+                &lt;
+              </button>
+              {renderPageNumbers()}
+              <button
+                onClick={() => paginate(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="h-10 w-10 flex items-center justify-center rounded-lg bg-white text-gray-700 border border-gray-300 font-semibold shadow-sm
+                           hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed
+                           transition duration-200 ease-in-out"
+              >
+                &gt;
+              </button>
+            </div>
+          </div>
         )}
       </main>
 

@@ -17,7 +17,6 @@ const DeleteBookConfirmation = ({ bookId, bookTitle, onClose }) => {
     }
   };
 
-
   return (
     // Outer container for the popup overlay, consistent with EditBookPopup
     <div className="fixed inset-0 bg-black bg-opacity-50 flex flex-col z-50 overflow-auto py-24 px-4 font-inter">
