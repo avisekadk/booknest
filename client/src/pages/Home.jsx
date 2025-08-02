@@ -9,12 +9,16 @@ import BookManagement from "../components/BookManagement";
 import Catalog from "../components/Catalog";
 import MyBorrowedBooks from "../components/MyBorrowedBooks";
 import Users from "../components/Users";
+import QRCodePopup from '../popups/QRCodePopup'; // Added import
+import ScannerPopup from '../popups/ScannerPopup'; // Added import
 
 const Home = () => {
   const [isSideBarOpen, setIsSideBarOpen] = useState(false);
   const [selectedComponent, setSelectedComponent] = useState("");
 
   const { user, isAuthenticated } = useSelector((state) => state.auth);
+  // Get popup states from the store
+  const { qrCodePopup, scannerPopup } = useSelector((state) => state.popup);
 
   if (!isAuthenticated) {
     return <Navigate to={"/login"} />;
@@ -71,6 +75,10 @@ const Home = () => {
           }
         })()}
       </div>
+
+      {/* Conditionally render popups */}
+      {qrCodePopup && user?.role === 'User' && <QRCodePopup />}
+      {scannerPopup && user?.role === 'Admin' && <ScannerPopup />}
     </div>
   );
 };

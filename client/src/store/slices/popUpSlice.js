@@ -9,8 +9,10 @@ const popupSlice = createSlice({
     recordBookPopup: false,
     returnBookPopup: false,
     addNewAdminPopup: false,
-    editBookPopup: false,    // NEW: for editing a book
-    deleteBookPopup: false,  // NEW: for confirming book deletion
+    editBookPopup: false,
+    deleteBookPopup: false,
+    qrCodePopup: false, // For user's QR code
+    scannerPopup: false, // For admin's scanner
   },
   reducers: {
     toggleSettingPopup(state) {
@@ -19,20 +21,15 @@ const popupSlice = createSlice({
     toggleAddBookPopup(state) {
       state.addBookPopup = !state.addBookPopup;
     },
-
-    // Keep toggle for other popups if you want
     toggleReadBookPopup(state) {
       state.readBookPopup = !state.readBookPopup;
     },
-
-    // **Add explicit open and close actions**
     openReadBookPopup(state) {
       state.readBookPopup = true;
     },
     closeReadBookPopup(state) {
       state.readBookPopup = false;
     },
-
     toggleRecordBookPopup(state) {
       state.recordBookPopup = !state.recordBookPopup;
     },
@@ -42,12 +39,17 @@ const popupSlice = createSlice({
     toggleAddNewAdminPopup(state) {
       state.addNewAdminPopup = !state.addNewAdminPopup;
     },
-    // NEW: Actions for Edit and Delete Book Popups
     toggleEditBookPopup(state) {
       state.editBookPopup = !state.editBookPopup;
     },
     toggleDeleteBookPopup(state) {
       state.deleteBookPopup = !state.deleteBookPopup;
+    },
+    toggleQrCodePopup(state) {
+      state.qrCodePopup = !state.qrCodePopup;
+    },
+    toggleScannerPopup(state) {
+      state.scannerPopup = !state.scannerPopup;
     },
     closeAllPopup(state) {
       state.settingPopup = false;
@@ -56,8 +58,10 @@ const popupSlice = createSlice({
       state.recordBookPopup = false;
       state.returnBookPopup = false;
       state.addNewAdminPopup = false;
-      state.editBookPopup = false;    // NEW: ensure this is closed
-      state.deleteBookPopup = false;  // NEW: ensure this is closed
+      state.editBookPopup = false;
+      state.deleteBookPopup = false;
+      state.qrCodePopup = false;
+      state.scannerPopup = false;
     },
   },
 });
@@ -67,13 +71,15 @@ export const {
   toggleSettingPopup,
   toggleAddBookPopup,
   toggleReadBookPopup,
-  openReadBookPopup,      // export new open action
-  closeReadBookPopup,     // export new close action
+  openReadBookPopup,
+  closeReadBookPopup,
   toggleRecordBookPopup,
   toggleReturnBookPopup,
   toggleAddNewAdminPopup,
-  toggleEditBookPopup,    // NEW: export the new action
-  toggleDeleteBookPopup,  // NEW: export the new action
+  toggleEditBookPopup,
+  toggleDeleteBookPopup,
+  toggleQrCodePopup,
+  toggleScannerPopup,
 } = popupSlice.actions;
 
 export default popupSlice.reducer;

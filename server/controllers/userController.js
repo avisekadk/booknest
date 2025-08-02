@@ -1,5 +1,6 @@
 import ErrorHandler from "../middlewares/errorMiddlewares.js";
 import { User } from "../models/userModel.js";
+import { Borrow } from "../models/borrowModel.js"; // Import Borrow model
 import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
 import bcrypt from "bcrypt";
 import { v2 as cloudinary } from "cloudinary";
@@ -58,4 +59,31 @@ export const registerNewAdmin = catchAsyncErrors(async (req, res, next) => {
         message:"Admin registered successfully.",
         admin: user,
     });
+});
+
+// NEW CONTROLLER FOR QR SCANNER
+export const getUserDetailsById = catchAsyncErrors(async (req, res, next) => {
+  const { id } = req.params;
+  // Find user by ID and select only the name and email
+  const user = await User.findById(id).select("name email");
+
+  if (!user) {
+    return next(new ErrorHandler("User not found.", 404));
+  }
+
+  // Fetch the complete borrow history from the 'Borrow' collection for this user
+  const borrowHistory = await Borrow.find({ "user.id": id })
+    .populate("book", "title") // Populate the book's title
+    .sort({ createdAt: -1 }); // Show the most recent records first
+
+  // Respond with a structured object containing user details and their full borrow history
+  res.status(200).json({
+    success: true,
+    user: {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      borrowHistory: borrowHistory, // This array will be used by the scanner popup
+    },
+  });
 });
