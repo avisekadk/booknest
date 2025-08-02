@@ -9,8 +9,9 @@ import BookManagement from "../components/BookManagement";
 import Catalog from "../components/Catalog";
 import MyBorrowedBooks from "../components/MyBorrowedBooks";
 import Users from "../components/Users";
-import QRCodePopup from '../popups/QRCodePopup'; // Added import
-import ScannerPopup from '../popups/ScannerPopup'; // Added import
+import QRCodePopup from "../popups/QRCodePopup"; // Added import
+import ScannerPopup from "../popups/ScannerPopup"; // Added import
+import PrebookingManagement from "../components/PrebookingManagement";
 
 const Home = () => {
   const [isSideBarOpen, setIsSideBarOpen] = useState(false);
@@ -64,6 +65,8 @@ const Home = () => {
               return user?.role === "Admin" ? <Catalog /> : null;
             case "Users":
               return user?.role === "Admin" ? <Users /> : null;
+            case "Prebookings":
+              return user?.role === "Admin" ? <PrebookingManagement /> : null;
             case "My Borrowed Books":
               return user?.role === "User" ? <MyBorrowedBooks /> : null;
             default:
@@ -77,8 +80,8 @@ const Home = () => {
       </div>
 
       {/* Conditionally render popups */}
-      {qrCodePopup && user?.role === 'User' && <QRCodePopup />}
-      {scannerPopup && user?.role === 'Admin' && <ScannerPopup />}
+      {qrCodePopup && user?.role === "User" && <QRCodePopup />}
+      {scannerPopup && user?.role === "Admin" && <ScannerPopup />}
     </div>
   );
 };

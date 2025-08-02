@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom"; // Import useNavigate
+import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -7,7 +7,7 @@ import Header from "../layout/Header";
 
 const BookDetails = () => {
   const { id } = useParams();
-  const navigate = useNavigate(); // Initialize the navigate hook
+  const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
   const [book, setBook] = useState(null);
   const [comments, setComments] = useState([]);
@@ -19,7 +19,7 @@ const BookDetails = () => {
     try {
       setIsLoading(true);
 
-      // Fetch a single book by its ID. This is more efficient than fetching all books.
+      // Fetch a single book by its ID.
       const bookRes = await axios.get(
         `http://localhost:4000/api/v1/book/${id}`,
         { withCredentials: true }
@@ -53,7 +53,7 @@ const BookDetails = () => {
         { withCredentials: true }
       );
       setNewComment("");
-      fetchBookAndComments(); // Refresh comments after adding a new one
+      fetchBookAndComments();
       toast.success("Comment posted!");
     } catch (error) {
       console.error("Error posting comment:", error);
@@ -66,11 +66,27 @@ const BookDetails = () => {
       await axios.delete(`http://localhost:4000/api/v1/comment/${commentId}`, {
         withCredentials: true,
       });
-      fetchBookAndComments(); // Refresh comments after deletion
+      fetchBookAndComments();
       toast.success("Comment deleted!");
     } catch (error) {
       console.error("Error deleting comment:", error);
       toast.error("Failed to delete comment.");
+    }
+  };
+
+  // New function to handle pre-booking
+  const handlePrebook = async () => {
+    try {
+      await axios.post(
+        `http://localhost:4000/api/v1/prebook/${id}`,
+        {},
+        { withCredentials: true }
+      );
+      toast.success(
+        "Pre-booking successful! The book is now reserved for 24 hours."
+      );
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to pre-book.");
     }
   };
 
@@ -99,7 +115,7 @@ const BookDetails = () => {
         {/* Back Button */}
         <div className="mb-4">
           <button
-            onClick={() => navigate(-1)} // Navigate back to the previous page
+            onClick={() => navigate(-1)}
             className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition duration-200"
           >
             &larr; Back to Books
@@ -114,6 +130,16 @@ const BookDetails = () => {
           <p className="mt-4 font-semibold">
             Available Copies: {book?.quantity}
           </p>
+
+          {/* Pre-book button - now shown for available books */}
+          {user?.role === "User" && book?.quantity > 0 && (
+            <button
+              onClick={handlePrebook}
+              className="mt-4 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-200"
+            >
+              Pre-Book Now
+            </button>
+          )}
         </div>
 
         {/* Comments Section */}

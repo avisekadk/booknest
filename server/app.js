@@ -9,6 +9,7 @@ import bookRouter from "./routes/bookRouter.js";
 import borrowRouter from "./routes/borrowRouter.js";
 import userRouter from "./routes/userRouter.js";
 import commentRouter from "./routes/commentRouter.js"; // Import the new comment router
+import prebookingRouter from "./routes/prebookingRouter.js";
 import expressFileUpload from "express-fileupload";
 import { notifyUsers } from "./services/notifyUser.js";
 import { removeUnverifiedAccounts } from "./services/removeUnverifiedAccounts.js";
@@ -39,6 +40,7 @@ app.use("/api/v1/book",bookRouter);
 app.use("/api/v1/borrow",borrowRouter);
 app.use("/api/v1/user",userRouter);
 app.use("/api/v1/comment", commentRouter); // Use the new comment router
+app.use("/api/v1/prebook", prebookingRouter);
 notifyUsers();
 removeUnverifiedAccounts();
 connectDB();

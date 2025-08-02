@@ -226,7 +226,7 @@ const BookManagement = () => {
                     <th className="px-4 py-3 sm:px-6">Author</th>
                     {isAuthenticated && user?.role === "Admin" && (
                       <th className="px-4 py-3 sm:px-6 hidden sm:table-cell">
-                        Quantity
+                        Available
                       </th>
                     )}
                     <th className="px-4 py-3 sm:px-6 hidden md:table-cell">
