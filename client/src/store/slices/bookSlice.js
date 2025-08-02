@@ -66,7 +66,9 @@ const bookSlice = createSlice({
     deleteBookSuccess: (state, action) => {
       state.loading = false;
       state.message = action.payload.message;
-      state.books = state.books.filter(book => book._id !== action.payload.bookId);
+      state.books = state.books.filter(
+        (book) => book._id !== action.payload.bookId
+      );
     },
     deleteBookFailed: (state, action) => {
       state.loading = false;
@@ -94,48 +96,72 @@ export const fetchAllBooks = () => async (dispatch) => {
     });
     dispatch(bookSlice.actions.fetchBooksSuccess(data.books));
   } catch (err) {
-    dispatch(bookSlice.actions.fetchBooksFailed(err.response?.data?.message || "Failed to fetch books"));
+    dispatch(
+      bookSlice.actions.fetchBooksFailed(
+        err.response?.data?.message || "Failed to fetch books"
+      )
+    );
   }
 };
 
 export const addBook = (data) => async (dispatch) => {
   dispatch(bookSlice.actions.addBookRequest());
   try {
-    const { data: responseData } = await axios.post("http://localhost:4000/api/v1/book/admin/add", data, {
-      withCredentials: true,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    // Renamed 'data' to 'responseData' to avoid confusion with the 'data' argument of the thunk
+    const { data: responseData } = await axios.post(
+      "http://localhost:4000/api/v1/book/admin/add",
+      data,
+      {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
     dispatch(bookSlice.actions.addBookSuccess(responseData.message));
   } catch (err) {
-    dispatch(bookSlice.actions.addBookFailed(err.response?.data?.message || "Failed to add book"));
+    dispatch(
+      bookSlice.actions.addBookFailed(
+        err.response?.data?.message || "Failed to add book"
+      )
+    );
   }
 };
 
 export const updateBook = (id, bookData) => async (dispatch) => {
   dispatch(bookSlice.actions.updateBookRequest());
   try {
-    const { data } = await axios.put(`http://localhost:4000/api/v1/book/admin/update/${id}`, bookData, {
-      withCredentials: true,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const { data } = await axios.put(
+      `http://localhost:4000/api/v1/book/admin/update/${id}`,
+      bookData,
+      {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
     dispatch(bookSlice.actions.updateBookSuccess(data.message));
   } catch (error) {
-    dispatch(bookSlice.actions.updateBookFailed(error.response?.data?.message || "Failed to update book"));
+    dispatch(
+      bookSlice.actions.updateBookFailed(
+        error.response?.data?.message || "Failed to update book"
+      )
+    );
   }
 };
 
 export const deleteBook = (id) => async (dispatch) => {
   dispatch(bookSlice.actions.deleteBookRequest());
   try {
-    const { data } = await axios.delete(`http://localhost:4000/api/v1/book/delete/${id}`, {
-      withCredentials: true,
-    });
-    dispatch(bookSlice.actions.deleteBookSuccess({ message: data.message, bookId: id }));
+    const { data } = await axios.delete(
+      `http://localhost:4000/api/v1/book/delete/${id}`,
+      {
+        withCredentials: true,
+      }
+    );
+    dispatch(
+      bookSlice.actions.deleteBookSuccess({ message: data.message, bookId: id })
+    );
     return data.message;
   } catch (error) {
     const errMsg = error?.response?.data?.message || "Failed to delete book";

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { PiKeyReturnBold } from "react-icons/pi";
 import { FaSquareCheck } from "react-icons/fa6";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,15 +17,27 @@ const Catalog = () => {
   const { loading, error, allBorrowedBooks, message } = useSelector(
     (state) => state.borrow
   );
+  // Fetching all books from the book slice to get titles
+  const { books: allBooks } = useSelector((state) => state.book);
 
   const [filter, setFilter] = useState("borrowed");
-  const [searchedKeyword, setSearchedKeyword] = useState(""); // New state for search keyword
+  const [searchedKeyword, setSearchedKeyword] = useState("");
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const [booksPerPage] = useState(15); // Set to 15 books per page, as requested.
+  const [booksPerPage] = useState(15); // Set to 15 books per page
+
+  // Creating a book map for efficient title lookup using useMemo
+  const bookMap = useMemo(() => {
+    if (!allBooks || allBooks.length === 0) return {};
+    return allBooks.reduce((acc, book) => {
+      acc[book._id] = book.title;
+      return acc;
+    }, {});
+  }, [allBooks]);
 
   const formatDate = (timeStamp) => {
+    if (!timeStamp) return "N/A";
     const date = new Date(timeStamp);
     return `${String(date.getDate()).padStart(2, "0")}-${String(
       date.getMonth() + 1
@@ -33,6 +45,7 @@ const Catalog = () => {
   };
 
   const formatDateAndTime = (timeStamp) => {
+    if (!timeStamp) return "N/A";
     const date = new Date(timeStamp);
     return `${String(date.getDate()).padStart(2, "0")}-${String(
       date.getMonth() + 1
@@ -43,54 +56,48 @@ const Catalog = () => {
 
   const currentDate = new Date();
 
-  // Filter books based on borrowed/overdue status and search keyword (user name or email)
-  const filteredAndSearchedBooks =
-    allBorrowedBooks?.filter((book) => {
-      const dueDate = new Date(book.dueDate);
-      const isBorrowed = dueDate > currentDate && !book.returnDate;
-      const isOverdue = dueDate <= currentDate && !book.returnDate;
+  // Filter books based on borrowed/overdue status and search keyword
+  const filteredAndSearchedBooks = (allBorrowedBooks || []).filter((book) => {
+    const dueDate = book.dueDate ? new Date(book.dueDate) : null;
+    const isBorrowed = dueDate && dueDate > currentDate && !book.returnDate;
+    const isOverdue = dueDate && dueDate <= currentDate && !book.returnDate;
 
-      // Apply filter based on 'borrowed' or 'overdue'
-      const matchesFilter = filter === "borrowed" ? isBorrowed : isOverdue;
+    const matchesFilter = filter === "borrowed" ? isBorrowed : isOverdue;
 
-      // Apply search if a search term is present
-      const matchesSearch = searchedKeyword
-        ? book?.user?.name
-            ?.toLowerCase()
-            .includes(searchedKeyword.toLowerCase()) ||
-          book?.user?.email
-            ?.toLowerCase()
-            .includes(searchedKeyword.toLowerCase())
-        : true;
+    const matchesSearch = searchedKeyword
+      ? book?.user?.name
+          ?.toLowerCase()
+          .includes(searchedKeyword.toLowerCase()) ||
+        book?.user?.email?.toLowerCase().includes(searchedKeyword.toLowerCase())
+      : true;
 
-      return matchesFilter && matchesSearch;
-    }) || []; // Ensure it's an array even if allBorrowedBooks is null/undefined
+    return matchesFilter && matchesSearch;
+  });
 
-  // Pagination calculations - based on the *entire filtered list*
+  // Pagination calculations
   const indexOfLastBook = currentPage * booksPerPage;
   const indexOfFirstBook = indexOfLastBook - booksPerPage;
-  const currentBooksOnPage = filteredAndSearchedBooks.slice(
+  const currentBooks = filteredAndSearchedBooks.slice(
     indexOfFirstBook,
     indexOfLastBook
   );
-
   const totalPages = Math.ceil(filteredAndSearchedBooks.length / booksPerPage);
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const paginate = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
+  // Pagination style logic from Code 2
   const renderPageNumbers = () => {
     const pageNumbers = [];
-    const maxPageButtons = 3; // Number of visible numeric page buttons around current page (excluding 1st and last)
+    const maxPageButtons = 3;
 
     if (totalPages <= maxPageButtons + 2) {
-      // If total pages are few, show all of them
       for (let i = 1; i <= totalPages; i++) {
         pageNumbers.push(i);
       }
     } else {
-      pageNumbers.push(1); // Always show the first page
-
-      // Determine the range of middle pages to show
+      pageNumbers.push(1);
       let startRange = Math.max(
         2,
         currentPage - Math.floor(maxPageButtons / 2)
@@ -100,29 +107,24 @@ const Catalog = () => {
         currentPage + Math.floor(maxPageButtons / 2)
       );
 
-      // Adjust start/end range if current page is near the boundaries
       if (currentPage - 1 <= Math.floor(maxPageButtons / 2)) {
-        endRange = maxPageButtons + 1; // Show more pages at the beginning
+        endRange = maxPageButtons + 1;
       } else if (totalPages - currentPage <= Math.floor(maxPageButtons / 2)) {
-        startRange = totalPages - maxPageButtons; // Show more pages at the end
+        startRange = totalPages - maxPageButtons;
       }
 
-      // Add leading ellipsis
       if (startRange > 2) {
         pageNumbers.push("...");
       }
 
-      // Add middle pages
       for (let i = startRange; i <= endRange; i++) {
         pageNumbers.push(i);
       }
 
-      // Add trailing ellipsis
       if (endRange < totalPages - 1) {
         pageNumbers.push("...");
       }
 
-      // Always show the last page
       if (!pageNumbers.includes(totalPages)) {
         pageNumbers.push(totalPages);
       }
@@ -143,8 +145,8 @@ const Catalog = () => {
           className={`h-10 w-10 flex items-center justify-center rounded-lg font-semibold transition duration-200 ease-in-out border
                       ${
                         currentPage === number
-                          ? "bg-blue-600 text-white shadow-md border-blue-600" // Active state
-                          : "bg-white text-gray-700 hover:bg-gray-100 border-gray-300" // Inactive state
+                          ? "bg-blue-600 text-white shadow-md border-blue-600"
+                          : "bg-white text-gray-700 hover:bg-gray-100 border-gray-300"
                       }`}
         >
           {number}
@@ -153,20 +155,27 @@ const Catalog = () => {
     );
   };
 
-  // Local state to control popup visibility and data
+  const handleFilterChange = (newFilter) => {
+    setFilter(newFilter);
+    setCurrentPage(1);
+  };
+
+  const handleSearch = (e) => {
+    setSearchedKeyword(e.target.value);
+    setCurrentPage(1);
+  };
+
+  // Local state for the Return Book popup
   const [showReturnPopup, setShowReturnPopup] = useState(false);
   const [borrowedBookId, setBorrowedBookId] = useState("");
   const [email, setEmail] = useState("");
 
-  // Open popup with selected book and user info
   const openReturnBookPopup = (bookId, email) => {
-    console.log("Opening popup with bookId:", bookId, "and email:", email); // <-- DEBUG LOG
     setBorrowedBookId(bookId);
     setEmail(email);
     setShowReturnPopup(true);
   };
 
-  // Close popup and clear local state
   const closeReturnBookPopup = () => {
     setShowReturnPopup(false);
     setBorrowedBookId("");
@@ -178,11 +187,6 @@ const Catalog = () => {
     dispatch(fetchAllBooks());
   }, [dispatch]);
 
-  // Reset page to 1 when filter or search keyword changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filter, searchedKeyword]);
-
   useEffect(() => {
     if (message) {
       toast.success(message);
@@ -191,15 +195,27 @@ const Catalog = () => {
       dispatch(resetBorrowSlice());
     }
     if (error) {
+      toast.error(error);
       dispatch(resetBorrowSlice());
     }
   }, [dispatch, error, message]);
+
+  // Check if all data is loaded before rendering the table
+  const isLoadingData =
+    loading || !allBorrowedBooks || !allBooks || allBooks.length === 0;
+
+  if (isLoadingData) {
+    return (
+      <div className="text-center mt-20 text-xl font-inter text-gray-700">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <>
       <main className="relative flex-1 p-6 pt-28 font-inter bg-gray-100 min-h-screen">
         <Header />
-        {/* Filter Buttons and Search Bar Header */}
         <header className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
           <button
             className={`py-3 px-6 rounded-lg font-bold transition duration-300 ease-in-out shadow-lg transform hover:scale-105 w-full sm:w-72
@@ -208,7 +224,7 @@ const Catalog = () => {
                   ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
                   : "bg-white text-blue-600 border-2 border-black shadow-md hover:bg-gray-100"
               }`}
-            onClick={() => setFilter("borrowed")}
+            onClick={() => handleFilterChange("borrowed")}
           >
             Borrowed Books
           </button>
@@ -219,24 +235,20 @@ const Catalog = () => {
                   ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
                   : "bg-white text-blue-600 border-2 border-black shadow-md hover:bg-gray-100"
               }`}
-            onClick={() => setFilter("overdue")}
+            onClick={() => handleFilterChange("overdue")}
           >
             Overdue Borrowers
           </button>
-          {/* Search Input for User Name or Email */}
           <input
             type="text"
             placeholder="Search by user name or email..."
             className="w-full sm:w-72 px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
             value={searchedKeyword}
-            onChange={(e) => setSearchedKeyword(e.target.value)}
+            onChange={handleSearch}
           />
         </header>
-        {loading ? (
-          <p className="mt-5 text-center text-xl font-inter text-gray-700">
-            Loading catalog data...
-          </p>
-        ) : filteredAndSearchedBooks.length > 0 ? ( // Check the overall filtered and searched list
+
+        {filteredAndSearchedBooks.length > 0 ? (
           <div className="mt-6 overflow-x-auto bg-white rounded-2xl shadow-xl">
             <table className="min-w-full border-collapse">
               <thead>
@@ -244,6 +256,7 @@ const Catalog = () => {
                   <th className="px-6 py-3">ID</th>
                   <th className="px-6 py-3">User Name</th>
                   <th className="px-6 py-3">Email</th>
+                  <th className="px-6 py-3">Book</th>
                   <th className="px-6 py-3 hidden sm:table-cell">Price</th>
                   <th className="px-6 py-3 hidden md:table-cell">Due Date</th>
                   <th className="px-6 py-3 hidden lg:table-cell">
@@ -253,27 +266,29 @@ const Catalog = () => {
                 </tr>
               </thead>
               <tbody>
-                {currentBooksOnPage.map(
-                  (
-                    book,
-                    index // Map over the paginated list
-                  ) => (
+                {currentBooks.map((book, index) => {
+                  const bookId = book?.book?._id || book?.book;
+                  const bookTitle = bookMap[bookId];
+
+                  return (
                     <tr
                       key={book._id}
                       className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
                     >
                       <td className="px-6 py-4 text-gray-800">
-                        {indexOfFirstBook + index + 1}{" "}
-                        {/* Corrected ID for pagination */}
+                        {indexOfFirstBook + index + 1}
                       </td>
                       <td className="px-6 py-4 text-gray-800 font-medium">
-                        {book?.user?.name}
+                        {book?.user?.name || "N/A"}
                       </td>
                       <td className="px-6 py-4 text-gray-700">
-                        {book?.user?.email}
+                        {book?.user?.email || "N/A"}
+                      </td>
+                      <td className="px-6 py-4 text-gray-700 font-medium">
+                        {bookTitle || "N/A"}
                       </td>
                       <td className="px-6 py-4 text-gray-700 hidden sm:table-cell">
-                        $ {book.price}
+                        $ {book.price || "N/A"}
                       </td>
                       <td className="px-6 py-4 text-gray-700 hidden md:table-cell">
                         {formatDate(book.dueDate)}
@@ -294,15 +309,15 @@ const Catalog = () => {
                             }
                             className="p-2 rounded-full hover:bg-blue-100 text-blue-600 transition duration-200 transform hover:scale-110"
                             title="Return Book"
-                            aria-label={`Return book ${book.title}`}
+                            aria-label={`Return book ${bookTitle || ""}`}
                           >
                             <PiKeyReturnBold className="w-6 h-6" />
                           </button>
                         )}
                       </td>
                     </tr>
-                  )
-                )}
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -314,7 +329,7 @@ const Catalog = () => {
         )}
 
         {/* Pagination Controls */}
-        {filteredAndSearchedBooks.length > 0 && ( // Only show pagination if there are filtered books
+        {filteredAndSearchedBooks.length > 0 && (
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8">
             <div className="text-gray-700 text-lg font-semibold">
               Results:{" "}

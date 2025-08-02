@@ -47,9 +47,9 @@ const BookManagement = () => {
   const [deleteBookId, setDeleteBookId] = useState(null);
   const [deleteBookTitle, setDeleteBookTitle] = useState("");
 
-  // Pagination states
+  // Pagination states from Code 2
   const [currentPage, setCurrentPage] = useState(1);
-  const [booksPerPage] = useState(15); // Set to 15 books per page, as requested.
+  const [booksPerPage] = useState(15);
 
   useEffect(() => {
     dispatch(fetchAllBooks());
@@ -98,7 +98,7 @@ const BookManagement = () => {
       book.author.toLowerCase().includes(searchedKeyword)
   );
 
-  // Pagination calculations
+  // Pagination calculations from Code 2
   const indexOfLastBook = currentPage * booksPerPage;
   const indexOfFirstBook = indexOfLastBook - booksPerPage;
   const currentBooks = filteredBooks.slice(indexOfFirstBook, indexOfLastBook);
@@ -109,17 +109,15 @@ const BookManagement = () => {
 
   const renderPageNumbers = () => {
     const pageNumbers = [];
-    const maxPageButtons = 3; // Number of visible numeric page buttons around current page (excluding 1st and last)
+    const maxPageButtons = 3;
 
     if (totalPages <= maxPageButtons + 2) {
-      // If total pages are few, show all of them
       for (let i = 1; i <= totalPages; i++) {
         pageNumbers.push(i);
       }
     } else {
-      pageNumbers.push(1); // Always show the first page
+      pageNumbers.push(1);
 
-      // Determine the range of middle pages to show
       let startRange = Math.max(
         2,
         currentPage - Math.floor(maxPageButtons / 2)
@@ -129,29 +127,24 @@ const BookManagement = () => {
         currentPage + Math.floor(maxPageButtons / 2)
       );
 
-      // Adjust start/end range if current page is near the boundaries
       if (currentPage - 1 <= Math.floor(maxPageButtons / 2)) {
-        endRange = maxPageButtons + 1; // Show more pages at the beginning
+        endRange = maxPageButtons + 1;
       } else if (totalPages - currentPage <= Math.floor(maxPageButtons / 2)) {
-        startRange = totalPages - maxPageButtons; // Show more pages at the end
+        startRange = totalPages - maxPageButtons;
       }
 
-      // Add leading ellipsis
       if (startRange > 2) {
         pageNumbers.push("...");
       }
 
-      // Add middle pages
       for (let i = startRange; i <= endRange; i++) {
         pageNumbers.push(i);
       }
 
-      // Add trailing ellipsis
       if (endRange < totalPages - 1) {
         pageNumbers.push("...");
       }
 
-      // Always show the last page
       if (!pageNumbers.includes(totalPages)) {
         pageNumbers.push(totalPages);
       }
@@ -172,8 +165,8 @@ const BookManagement = () => {
           className={`h-10 w-10 flex items-center justify-center rounded-lg font-semibold transition duration-200 ease-in-out border
                       ${
                         currentPage === number
-                          ? "bg-blue-600 text-white shadow-md border-blue-600" // Active state
-                          : "bg-white text-gray-700 hover:bg-gray-100 border-gray-300" // Inactive state
+                          ? "bg-blue-600 text-white shadow-md border-blue-600"
+                          : "bg-white text-gray-700 hover:bg-gray-100 border-gray-300"
                       }`}
         >
           {number}
@@ -251,8 +244,7 @@ const BookManagement = () => {
                       className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
                     >
                       <td className="px-4 py-4 sm:px-6 text-gray-800">
-                        {indexOfFirstBook + index + 1}{" "}
-                        {/* Corrected ID for pagination */}
+                        {indexOfFirstBook + index + 1}
                       </td>
                       <td className="px-4 py-4 sm:px-6 text-gray-800 font-medium">
                         {book.title}
@@ -336,8 +328,8 @@ const BookManagement = () => {
           </h3>
         )}
 
-        {/* Pagination Controls */}
-        {filteredBooks.length > 0 && ( // Only show pagination if there are filtered books
+        {/* Pagination Controls from Code 2 */}
+        {filteredBooks.length > 0 && (
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8">
             <div className="text-gray-700 text-lg font-semibold">
               Results: {Math.min(indexOfFirstBook + 1, filteredBooks.length)} -{" "}
