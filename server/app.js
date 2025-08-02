@@ -8,12 +8,13 @@ import authRouter from "./routes/authRoutes.js";
 import bookRouter from "./routes/bookRouter.js";
 import borrowRouter from "./routes/borrowRouter.js";
 import userRouter from "./routes/userRouter.js";
+import commentRouter from "./routes/commentRouter.js"; // Import the new comment router
 import expressFileUpload from "express-fileupload";
 import { notifyUsers } from "./services/notifyUser.js";
 import { removeUnverifiedAccounts } from "./services/removeUnverifiedAccounts.js";
 
 
-export const app =express();
+export const app = express();
 
 config({path: "./config/config.env"});
 
@@ -26,7 +27,7 @@ app.use(cors({
 
 app.use(cookieParser());
 app.use(express.json());
-app.use(express.urlencoded({extended:true}))
+app.use(express.urlencoded({extended:true}));
 
 app.use(expressFileUpload({
   useTempFiles:true,
@@ -37,6 +38,7 @@ app.use("/api/v1/auth",authRouter);
 app.use("/api/v1/book",bookRouter);
 app.use("/api/v1/borrow",borrowRouter);
 app.use("/api/v1/user",userRouter);
+app.use("/api/v1/comment", commentRouter); // Use the new comment router
 notifyUsers();
 removeUnverifiedAccounts();
 connectDB();

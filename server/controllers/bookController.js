@@ -25,6 +25,21 @@ export const getAllBook = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
+// Get a single book by ID
+export const getSingleBook = catchAsyncErrors(async (req, res, next) => {
+  const { id } = req.params;
+  const book = await Book.findById(id);
+
+  if (!book) {
+    return next(new ErrorHandler("Book not found.", 404));
+  }
+
+  res.status(200).json({
+    success: true,
+    book,
+  });
+});
+
 // Delete a book
 export const deleteBook = catchAsyncErrors(async (req, res, next) => {
   const { id } = req.params;

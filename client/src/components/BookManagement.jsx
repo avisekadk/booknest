@@ -21,6 +21,7 @@ import ReadBookPopup from "../popups/ReadBookPopup";
 import RecordBookPopup from "../popups/RecordBookPopup";
 import EditBookPopup from "../popups/EditBookPopup";
 import DeleteBookConfirmation from "../popups/DeleteBookPopup";
+import { Link } from "react-router-dom"; // Import Link
 
 const BookManagement = () => {
   const dispatch = useDispatch();
@@ -247,7 +248,12 @@ const BookManagement = () => {
                         {indexOfFirstBook + index + 1}
                       </td>
                       <td className="px-4 py-4 sm:px-6 text-gray-800 font-medium">
-                        {book.title}
+                        <Link
+                          to={`/book/${book._id}`}
+                          className="hover:underline text-blue-600"
+                        >
+                          {book.title}
+                        </Link>
                       </td>
                       <td className="px-4 py-4 sm:px-6 text-gray-700">
                         {book.author}
