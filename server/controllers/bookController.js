@@ -2,6 +2,8 @@ import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
 import ErrorHandler from "../middlewares/errorMiddlewares.js";
 import { Book } from "../models/bookModel.js";
 import { Borrow } from "../models/borrowModel.js"; // Import Borrow for borrow counts
+import { User } from "../models/userModel.js";
+import { sendEmail } from "../utils/sendEmail.js";
 
 // --- PUBLIC CONTROLLERS ---
 
@@ -101,15 +103,55 @@ export const addBook = catchAsyncErrors(async (req, res, next) => {
  */
 export const updateBook = catchAsyncErrors(async (req, res, next) => {
     const { id } = req.params;
-    const book = await Book.findByIdAndUpdate(id, req.body, {
-        new: true,
-        runValidators: true,
-        useFindAndModify: false,
-    });
+    const { title, author, description, price, quantity, totalCopies } = req.body;
+    
+    let book = await Book.findById(id);
 
     if (!book) {
         return next(new ErrorHandler("Book not found.", 404));
     }
+
+    const wasUnavailable = book.quantity === 0;
+
+    book.title = title;
+    book.author = author;
+    book.description = description;
+    book.price = price;
+    book.quantity = quantity;
+    book.totalCopies = totalCopies;
+
+    await book.save();
+    
+    const isNowAvailable = wasUnavailable && book.quantity > 0;
+
+    // NOTIFICATION LOGIC
+    if (isNowAvailable && book.subscribers.length > 0) {
+        const subscribers = await User.find({ '_id': { $in: book.subscribers } }).select('email name');
+
+        for (const sub of subscribers) {
+            const message = `
+                <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
+                    <h2>Book Back in Stock!</h2>
+                    <p>Hello ${sub.name},</p>
+                    <p>Great news! The book "<strong>${book.title}</strong>" you were waiting for is now back in stock.</p>
+                    <p>Hurry up and pre-book your copy before it's gone again!</p>
+                    <a href="${process.env.FRONTEND_URL}/book/${book._id}" style="display: inline-block; padding: 10px 20px; background-color: #2f80ed; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px;">
+                        View Book
+                    </a>
+                </div>
+            `;
+            await sendEmail({
+                email: sub.email,
+                subject: `BookNest: "${book.title}" is Available!`,
+                message,
+            });
+        }
+        
+        // Clear subscribers list after notifying
+        book.subscribers = [];
+        await book.save();
+    }
+
     res.status(200).json({
         success: true,
         message: "Book updated successfully.",

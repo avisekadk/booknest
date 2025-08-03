@@ -28,6 +28,7 @@ export const recordBorrowBook = catchAsyncErrors(async (req, res, next) => {
   }
   book.quantity -= 1;
   book.availability = book.quantity > 0;
+  book.borrowCount += 1; // INCREMENT BORROW COUNT
   await book.save();
   user.borrowedBooks.push({
     bookId: book._id,

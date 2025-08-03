@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useSelector } from "react-redux";
 import Header from "../layout/Header";
 
@@ -34,6 +34,19 @@ const Users = () => {
     return (matchesName || matchesEmail) && user.role === "User";
   });
 
+  // Sorting logic using useMemo
+  const sortedUsers = useMemo(() => {
+    return [...filteredUsers].sort((a, b) => {
+      const borrowDiff =
+        (b.borrowedBooks?.length || 0) - (a.borrowedBooks?.length || 0);
+      if (borrowDiff !== 0) {
+        return borrowDiff; // Sort by most borrowed first
+      }
+      // If borrow count is the same, sort by newest user first
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+  }, [filteredUsers]);
+
   // Reset to the first page whenever the search keyword changes
   useEffect(() => {
     setCurrentPage(1);
@@ -42,15 +55,15 @@ const Users = () => {
   // Pagination Logic
   const indexOfLastUser = currentPage * usersPerPage;
   const indexOfFirstUser = indexOfLastUser - usersPerPage;
-  const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
+  const currentUsers = sortedUsers.slice(indexOfFirstUser, indexOfLastUser);
 
   // Calculate total pages
-  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+  const totalPages = Math.ceil(sortedUsers.length / usersPerPage);
 
   // Handle page change
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  // Pagination style logic from Code 2
+  // Pagination style logic
   const renderPageNumbers = () => {
     const pageNumbers = [];
     const maxPageButtons = 3;
@@ -133,7 +146,7 @@ const Users = () => {
           onChange={(e) => setSearchedKeyword(e.target.value)}
         />
       </header>
-      {filteredUsers && filteredUsers.length > 0 ? (
+      {sortedUsers && sortedUsers.length > 0 ? (
         <>
           <div className="mt-6 overflow-x-auto bg-white rounded-2xl shadow-xl">
             <table className="min-w-full border-collapse">
@@ -196,13 +209,12 @@ const Users = () => {
             </table>
           </div>
           {/* Pagination Controls */}
-          {filteredUsers.length > 0 && (
+          {sortedUsers.length > 0 && (
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8">
               <div className="text-gray-700 text-lg font-semibold">
-                Results:{" "}
-                {Math.min(indexOfFirstUser + 1, filteredUsers.length)} -{" "}
-                {Math.min(indexOfLastUser, filteredUsers.length)} of{" "}
-                {filteredUsers.length}
+                Results: {Math.min(indexOfFirstUser + 1, sortedUsers.length)} -{" "}
+                {Math.min(indexOfLastUser, sortedUsers.length)} of{" "}
+                {sortedUsers.length}
               </div>
               <div className="flex justify-center items-center gap-2">
                 <button

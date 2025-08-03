@@ -32,18 +32,18 @@ const bookSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    /**
-     * @desc The number of times a book has been borrowed.
-     * This is used for sorting books by popularity.
-     */
-    borrowCount: {
-      type: Number,
-      default: 0,
-    },
     availability: {
       type: Boolean,
       default: true,
     },
+    borrowCount: { // For sorting by popularity
+      type: Number,
+      default: 0,
+    },
+    subscribers: [{ // For "Notify Me" feature
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
   },
   {
     timestamps: true,

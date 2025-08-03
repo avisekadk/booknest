@@ -10,6 +10,7 @@ import {
     incrementBookQuantity, // Controller for incrementing quantity
     decrementBookQuantity, // Controller for decrementing quantity
 } from "../controllers/bookController.js";
+import { subscribeToBook } from "../controllers/notificationController.js";
 
 const router = express.Router();
 
@@ -46,5 +47,8 @@ router.put("/admin/increment/:id", isAuthenticated, isAuthorized("Admin"), incre
 
 // Route to decrement a book's quantity by ID (Admin only)
 router.put("/admin/decrement/:id", isAuthenticated, isAuthorized("Admin"), decrementBookQuantity);
+
+// Route for users to subscribe to a book's availability notification
+router.post("/notify-me/:bookId", isAuthenticated, subscribeToBook);
 
 export default router;

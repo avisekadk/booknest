@@ -50,6 +50,11 @@ const EditBookPopup = ({ book, onClose }) => {
     }
   };
 
+  // This function handles the +/- buttons
+  const handleQuantityChange = (amount) => {
+    setQuantity((prev) => Math.max(0, prev + amount)); // Ensure quantity doesn't go below 0
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex flex-col z-50 overflow-auto py-24 px-4 font-inter">
       <div className="w-full bg-white rounded-2xl shadow-2xl max-w-lg mx-auto p-8 transition-all relative">
@@ -113,6 +118,7 @@ const EditBookPopup = ({ book, onClose }) => {
             />
           </div>
           <div className="grid grid-cols-2 gap-4 mb-8">
+            {/* New quantity UI */}
             <div>
               <label
                 htmlFor="quantity"
@@ -120,15 +126,25 @@ const EditBookPopup = ({ book, onClose }) => {
               >
                 Quantity
               </label>
-              <input
-                type="number"
-                id="quantity"
-                className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white"
-                value={quantity}
-                onChange={(e) => setQuantity(Number(e.target.value))}
-                min="0"
-                required
-              />
+              <div className="flex items-center gap-4 mt-1">
+                <button
+                  type="button"
+                  onClick={() => handleQuantityChange(-1)}
+                  className="px-4 py-2 bg-red-500 text-white font-bold rounded-lg"
+                >
+                  -
+                </button>
+                <span className="text-xl font-bold w-12 text-center">
+                  {quantity}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleQuantityChange(1)}
+                  className="px-4 py-2 bg-green-500 text-white font-bold rounded-lg"
+                >
+                  +
+                </button>
+              </div>
             </div>
             <div>
               <label

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { BookA } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleReadBookPopup } from "../store/slices/popUpSlice";
@@ -57,10 +57,17 @@ const MyBorrowedBooks = () => {
     return `${formattedDate} ${formattedTime}`;
   };
 
-  // Filter books based on the 'returned' state
-  const filteredBooks = (userBorrowedBooks || []).filter((book) =>
-    filter === "returned" ? book.returned : !book.returned
-  );
+  // Filter and sort books based on the 'returned' state and most recent borrow date
+  const filteredBooks = useMemo(() => {
+    const booksToSort = (userBorrowedBooks || []).filter((book) =>
+      filter === "returned" ? book.returned : !book.returned
+    );
+    // Sort by most recent borrow date on top
+    booksToSort.sort(
+      (a, b) => new Date(b.borrowedDate) - new Date(a.borrowedDate)
+    );
+    return booksToSort;
+  }, [userBorrowedBooks, filter]);
 
   // Pagination logic
   const indexOfLastBook = currentPage * booksPerPage;

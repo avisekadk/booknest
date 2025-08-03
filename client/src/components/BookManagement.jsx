@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { BookA, NotebookPen, Pencil, Trash2 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -48,9 +48,11 @@ const BookManagement = () => {
   const [deleteBookId, setDeleteBookId] = useState(null);
   const [deleteBookTitle, setDeleteBookTitle] = useState("");
 
-  // Pagination states from Code 2
+  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [booksPerPage] = useState(15);
+  // Sorting state
+  const [sortOrder, setSortOrder] = useState("title_asc"); // Default sort
 
   useEffect(() => {
     dispatch(fetchAllBooks());
@@ -99,12 +101,36 @@ const BookManagement = () => {
       book.author.toLowerCase().includes(searchedKeyword)
   );
 
-  // Pagination calculations from Code 2
+  // Sorting logic using useMemo
+  const sortedAndFilteredBooks = useMemo(() => {
+    let sorted = [...filteredBooks]; // Create a mutable copy
+    switch (sortOrder) {
+      case "price_asc":
+        sorted.sort((a, b) => a.price - b.price);
+        break;
+      case "price_desc":
+        sorted.sort((a, b) => b.price - a.price);
+        break;
+      case "most_borrowed":
+        sorted.sort((a, b) => (b.borrowCount || 0) - (a.borrowCount || 0));
+        break;
+      case "title_asc":
+      default:
+        sorted.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+    }
+    return sorted;
+  }, [filteredBooks, sortOrder]);
+
+  // Pagination calculations using the new sorted array
   const indexOfLastBook = currentPage * booksPerPage;
   const indexOfFirstBook = indexOfLastBook - booksPerPage;
-  const currentBooks = filteredBooks.slice(indexOfFirstBook, indexOfLastBook);
+  const currentBooks = sortedAndFilteredBooks.slice(
+    indexOfFirstBook,
+    indexOfLastBook
+  );
 
-  const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
+  const totalPages = Math.ceil(sortedAndFilteredBooks.length / booksPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -215,7 +241,29 @@ const BookManagement = () => {
           </div>
         </header>
 
-        {filteredBooks.length > 0 ? (
+        {/* --- New Sorting Controls --- */}
+        <div className="flex justify-end items-center mb-4">
+          <label
+            htmlFor="sortOrder"
+            className="mr-2 font-semibold text-gray-700"
+          >
+            Sort by:
+          </label>
+          <select
+            id="sortOrder"
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+          >
+            <option value="title_asc">Title (A-Z)</option>
+            <option value="price_asc">Price (Low to High)</option>
+            <option value="price_desc">Price (High to Low)</option>
+            <option value="most_borrowed">Most Borrowed</option>
+          </select>
+        </div>
+        {/* --- End of New Sorting Controls --- */}
+
+        {sortedAndFilteredBooks.length > 0 ? (
           currentBooks.length > 0 ? (
             <div className="mt-6 overflow-x-auto bg-white rounded-2xl shadow-xl">
               <table className="min-w-full border-collapse">
@@ -334,13 +382,14 @@ const BookManagement = () => {
           </h3>
         )}
 
-        {/* Pagination Controls from Code 2 */}
-        {filteredBooks.length > 0 && (
+        {/* Pagination Controls */}
+        {sortedAndFilteredBooks.length > 0 && (
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8">
             <div className="text-gray-700 text-lg font-semibold">
-              Results: {Math.min(indexOfFirstBook + 1, filteredBooks.length)} -{" "}
-              {Math.min(indexOfLastBook, filteredBooks.length)} of{" "}
-              {filteredBooks.length}
+              Results:{" "}
+              {Math.min(indexOfFirstBook + 1, sortedAndFilteredBooks.length)} -{" "}
+              {Math.min(indexOfLastBook, sortedAndFilteredBooks.length)} of{" "}
+              {sortedAndFilteredBooks.length}
             </div>
             <div className="flex justify-center items-center gap-2">
               <button

@@ -68,6 +68,35 @@ const BookDetails = () => {
     }
   };
 
+  // This function will handle the "Pre-Book" click
+  const handlePrebook = async () => {
+    try {
+      const { data } = await axios.post(
+        `/api/v1/borrow/book/${id}`,
+        { email: user.email },
+        { withCredentials: true }
+      );
+      toast.success(data.message);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to pre-book.");
+    }
+  };
+
+  // This function will handle the "Notify Me" click
+  const handleNotifyMe = async () => {
+    try {
+      const { data } = await axios.post(
+        `/api/v1/book/notify-me/${id}`,
+        {},
+        { withCredentials: true }
+      );
+      toast.success(data.message);
+      // You might want to update the UI to show "You are subscribed"
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to subscribe.");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="text-center mt-20 text-xl font-inter text-gray-700">
@@ -107,6 +136,50 @@ const BookDetails = () => {
           <h2 className="text-xl text-gray-700 mb-2">by {book?.author}</h2>
           <p className="text-gray-600">{book?.description}</p>
         </div>
+
+        {/* --- UPDATED BUTTON LOGIC --- */}
+        {isAuthenticated && user?.role === "User" && (
+          <div className="mt-4">
+            {book.quantity > 0 ? (
+              user.kyc?.status === "Verified" ? (
+                <button
+                  onClick={handlePrebook} // This function already exists
+                  className="mt-4 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700"
+                >
+                  Pre-Book Now
+                </button>
+              ) : (
+                <div className="p-3 bg-yellow-50 text-yellow-800 rounded-lg">
+                  <p>
+                    Your KYC must be verified to pre-book.
+                    <Link to="/kyc" className="font-bold underline ml-2">
+                      Verify Now
+                    </Link>
+                  </p>
+                </div>
+              )
+            ) : // Book is out of stock
+            user.kyc?.status === "Verified" ? (
+              <button
+                onClick={handleNotifyMe}
+                className="mt-4 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700"
+              >
+                Notify Me When Available
+              </button>
+            ) : (
+              <div className="p-3 bg-gray-100 text-gray-800 rounded-lg">
+                <p>
+                  Book is out of stock. Verify your KYC to get notified upon
+                  availability.
+                  <Link to="/kyc" className="font-bold underline ml-2">
+                    Verify Now
+                  </Link>
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+        {/* --- END OF UPDATED LOGIC --- */}
 
         {/* Comments Section */}
         <div className="bg-white p-6 rounded-lg shadow-lg">
