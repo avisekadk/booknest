@@ -12,6 +12,7 @@ import MyBorrowedBooks from "../components/MyBorrowedBooks";
 import Users from "../components/Users";
 import KycForm from "../components/KycForm"; // User's KYC form component
 import KycManagement from "../components/KycManagement"; // Admin's KYC management component
+import Prebookings from "../components/PrebookingManagement"; // Import the Prebookings component
 
 const Home = () => {
   // State to manage the visibility of the mobile sidebar
