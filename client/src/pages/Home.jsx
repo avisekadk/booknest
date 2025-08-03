@@ -9,48 +9,43 @@ import BookManagement from "../components/BookManagement";
 import Catalog from "../components/Catalog";
 import MyBorrowedBooks from "../components/MyBorrowedBooks";
 import Users from "../components/Users";
-import QRCodePopup from "../popups/QRCodePopup"; // Added import
-import ScannerPopup from "../popups/ScannerPopup"; // Added import
-import PrebookingManagement from "../components/PrebookingManagement";
 
 const Home = () => {
+  // State to manage the visibility of the mobile sidebar
   const [isSideBarOpen, setIsSideBarOpen] = useState(false);
-  const [selectedComponent, setSelectedComponent] = useState("");
+  // State to determine which main content component to display
+  const [selectedComponent, setSelectedComponent] = useState("Dashboard");
 
+  // Get user and authentication status from the Redux store
   const { user, isAuthenticated } = useSelector((state) => state.auth);
-  // Get popup states from the store
-  const { qrCodePopup, scannerPopup } = useSelector((state) => state.popup);
 
+  // If the user is not authenticated, redirect them to the login page
   if (!isAuthenticated) {
     return <Navigate to={"/login"} />;
   }
 
   return (
     <div className="relative md:pl-64 flex min-h-screen bg-gray-100 text-gray-800 transition-all duration-200">
-      {/* Mobile Hamburger Button */}
+      {/* Hamburger menu button for mobile views */}
       <div
         className="md:hidden z-20 fixed top-4 right-4 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg shadow-md cursor-pointer transition-all"
         onClick={() => setIsSideBarOpen(!isSideBarOpen)}
         role="button"
         aria-label="Toggle sidebar"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ")
-            setIsSideBarOpen(!isSideBarOpen);
-        }}
       >
         <GiHamburgerMenu className="text-xl" />
       </div>
 
-      {/* Sidebar */}
+      {/* The Sidebar component, which controls the selectedComponent state */}
       <SideBar
         isSideBarOpen={isSideBarOpen}
         setIsSideBarOpen={setIsSideBarOpen}
         setSelectedComponent={setSelectedComponent}
       />
 
-      {/* Main Content */}
+      {/* Main content area */}
       <div className="flex-grow p-4 md:p-6 transition-all w-full overflow-auto">
+        {/* Conditional rendering of components based on selectedComponent and user role */}
         {(() => {
           switch (selectedComponent) {
             case "Dashboard":
@@ -60,16 +55,22 @@ const Home = () => {
                 <AdminDashboard />
               );
             case "Books":
+              // Show BookManagement for both User and Admin (assuming this is a catalog)
               return <BookManagement />;
             case "Catalog":
+              // Assuming this Catalog is for admin-only management
               return user?.role === "Admin" ? <Catalog /> : null;
             case "Users":
+              // Show Users component only for Admins
               return user?.role === "Admin" ? <Users /> : null;
-            case "Prebookings":
-              return user?.role === "Admin" ? <PrebookingManagement /> : null;
             case "My Borrowed Books":
+              // Show borrowed books only for regular Users
               return user?.role === "User" ? <MyBorrowedBooks /> : null;
+            case "KYC Management":
+              // Show KYC Management only for Admins
+              return user?.role === "Admin" ? <KycManagement /> : null;
             default:
+              // Default to the appropriate dashboard if no other component is selected
               return user?.role === "User" ? (
                 <UserDashboard />
               ) : (
@@ -78,10 +79,6 @@ const Home = () => {
           }
         })()}
       </div>
-
-      {/* Conditionally render popups */}
-      {qrCodePopup && user?.role === "User" && <QRCodePopup />}
-      {scannerPopup && user?.role === "Admin" && <ScannerPopup />}
     </div>
   );
 };
