@@ -1,3 +1,4 @@
+// src/pages/Home.jsx
 import React, { useState } from "react";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { useSelector } from "react-redux";
@@ -9,6 +10,8 @@ import BookManagement from "../components/BookManagement";
 import Catalog from "../components/Catalog";
 import MyBorrowedBooks from "../components/MyBorrowedBooks";
 import Users from "../components/Users";
+import KycForm from "../components/KycForm"; // User's KYC form component
+import KycManagement from "../components/KycManagement"; // Admin's KYC management component
 
 const Home = () => {
   // State to manage the visibility of the mobile sidebar
@@ -55,22 +58,20 @@ const Home = () => {
                 <AdminDashboard />
               );
             case "Books":
-              // Show BookManagement for both User and Admin (assuming this is a catalog)
               return <BookManagement />;
             case "Catalog":
-              // Assuming this Catalog is for admin-only management
               return user?.role === "Admin" ? <Catalog /> : null;
             case "Users":
-              // Show Users component only for Admins
               return user?.role === "Admin" ? <Users /> : null;
             case "My Borrowed Books":
-              // Show borrowed books only for regular Users
               return user?.role === "User" ? <MyBorrowedBooks /> : null;
+            case "KYC Verification":
+              return user?.role === "User" ? <KycForm /> : null;
             case "KYC Management":
-              // Show KYC Management only for Admins
               return user?.role === "Admin" ? <KycManagement /> : null;
+            case "Pre-bookings":
+              return user?.role === "Admin" ? <Prebookings /> : null;
             default:
-              // Default to the appropriate dashboard if no other component is selected
               return user?.role === "User" ? (
                 <UserDashboard />
               ) : (
