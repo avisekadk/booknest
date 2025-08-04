@@ -1,3 +1,5 @@
+// client/src/pages/Login.jsx
+
 import React, { useEffect, useState } from "react";
 import logo from "../assets/black-logo.png";
 import logoWith_title from "../assets/logo-with-title.png";
@@ -7,37 +9,29 @@ import { Link, Navigate } from "react-router-dom";
 import { login, resetAuthSlice } from "../store/slices/authSlice";
 
 const Login = () => {
-  // State to hold the user's email and password input
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  // Initialize Redux hooks
   const dispatch = useDispatch();
-  // Destructure state from the Redux store
   const { loading, error, isAuthenticated } = useSelector(
     (state) => state.auth
   );
 
-  // Function to handle form submission
   const handleLogin = (e) => {
-    e.preventDefault(); // Prevent default form submission behavior
+    e.preventDefault();
     const data = new FormData();
     data.append("email", email);
     data.append("password", password);
-    dispatch(login(data)); // Dispatch the login action
+    dispatch(login(data));
   };
 
-  // Effect hook to handle errors from the Redux state
   useEffect(() => {
     if (error) {
       toast.error(error);
-      // Reset the error state to prevent the toast from showing again
       dispatch(resetAuthSlice());
     }
   }, [dispatch, error]);
 
-  // If the user is authenticated, redirect them to the dashboard
-  // This is a guard clause to prevent access to the login page after a successful login
+  // Redirect to /dashboard instead of /
   if (isAuthenticated) {
     return <Navigate to={"/dashboard"} />;
   }
@@ -45,7 +39,6 @@ const Login = () => {
   return (
     <>
       <div className="flex flex-col md:flex-row h-screen bg-gray-100">
-        {/* LEFT SIDE: Login Form */}
         <div className="w-full md:w-1/2 flex items-center justify-center bg-white p-10 md:p-16 h-full">
           <div className="w-full max-w-md">
             <div className="flex justify-center mb-10">
@@ -86,7 +79,7 @@ const Login = () => {
               </div>
               <button
                 type="submit"
-                disabled={loading} // Disable the button while the login is in progress
+                disabled={loading}
                 className="w-full py-3 rounded-xl bg-blue-500 hover:bg-blue-700 text-white font-bold shadow-md transition-all duration-200 disabled:bg-blue-300"
               >
                 {loading ? "Logging in..." : "LOG IN"}
@@ -105,8 +98,6 @@ const Login = () => {
             </form>
           </div>
         </div>
-
-        {/* RIGHT SIDE: Promotional Content */}
         <div className="hidden md:flex w-full md:w-1/2 bg-gradient-to-br from-blue-500 to-blue-600 text-white items-center justify-center p-10 rounded-tl-[80px] rounded-bl-[80px] shadow-xl h-full">
           <div className="text-center max-w-md">
             <div className="mb-6">

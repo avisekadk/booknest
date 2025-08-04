@@ -1,3 +1,5 @@
+// client/src/pages/BookDetails.jsx
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -68,49 +70,39 @@ const BookDetails = () => {
     }
   };
 
-  // This function will handle the "Pre-Book" click
   const handlePrebook = async () => {
     try {
       const { data } = await axios.post(
-        `/api/v1/borrow/book/${id}`,
-        { email: user.email },
+        `http://localhost:4000/api/v1/prebook/${id}`,
+        {},
         { withCredentials: true }
       );
       toast.success(data.message);
+      fetchBookAndComments(); // Refresh book details to show updated quantity
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to pre-book.");
     }
   };
 
-  // This function will handle the "Notify Me" click
   const handleNotifyMe = async () => {
     try {
       const { data } = await axios.post(
-        `/api/v1/book/notify-me/${id}`,
+        `http://localhost:4000/api/v1/book/notify-me/${id}`,
         {},
         { withCredentials: true }
       );
       toast.success(data.message);
-      // You might want to update the UI to show "You are subscribed"
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to subscribe.");
     }
   };
 
   if (isLoading) {
-    return (
-      <div className="text-center mt-20 text-xl font-inter text-gray-700">
-        Loading...
-      </div>
-    );
+    return <div className="text-center mt-20">Loading...</div>;
   }
 
   if (!book) {
-    return (
-      <div className="text-center mt-20 text-xl font-inter text-gray-700">
-        Book not found.
-      </div>
-    );
+    return <div className="text-center mt-20">Book not found.</div>;
   }
 
   return (
@@ -124,26 +116,25 @@ const BookDetails = () => {
         <div className="mb-4">
           <button
             onClick={() => navigate(-1)}
-            className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition duration-200"
+            className="px-4 py-2 bg-gray-300 rounded-lg"
           >
             &larr; Back
           </button>
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
-          {/* Book details content remains the same */}
           <h1 className="text-3xl font-bold">{book?.title}</h1>
           <h2 className="text-xl text-gray-700 mb-2">by {book?.author}</h2>
           <p className="text-gray-600">{book?.description}</p>
         </div>
 
-        {/* --- UPDATED BUTTON LOGIC --- */}
+        {/* Corrected and simplified logic for buttons */}
         {isAuthenticated && user?.role === "User" && (
           <div className="mt-4">
             {book.quantity > 0 ? (
-              user.kyc?.status === "Verified" ? (
+              user.kycStatus === "Verified" ? (
                 <button
-                  onClick={handlePrebook} // This function already exists
+                  onClick={handlePrebook}
                   className="mt-4 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700"
                 >
                   Pre-Book Now
@@ -158,74 +149,57 @@ const BookDetails = () => {
                   </p>
                 </div>
               )
-            ) : // Book is out of stock
-            user.kyc?.status === "Verified" ? (
+            ) : (
+              // Book is out of stock
               <button
                 onClick={handleNotifyMe}
                 className="mt-4 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700"
               >
                 Notify Me When Available
               </button>
-            ) : (
-              <div className="p-3 bg-gray-100 text-gray-800 rounded-lg">
-                <p>
-                  Book is out of stock. Verify your KYC to get notified upon
-                  availability.
-                  <Link to="/kyc" className="font-bold underline ml-2">
-                    Verify Now
-                  </Link>
-                </p>
-              </div>
             )}
           </div>
         )}
-        {/* --- END OF UPDATED LOGIC --- */}
 
         {/* Comments Section */}
-        <div className="bg-white p-6 rounded-lg shadow-lg">
+        <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
           <h3 className="text-2xl font-bold mb-4">Discussion</h3>
-
-          {/* --- UPDATED COMMENT BOX LOGIC --- */}
           {isAuthenticated ? (
-            // If user is logged in, show the active comment form
             <form onSubmit={handleAddComment} className="mb-6">
               <textarea
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                className="w-full p-2 border rounded-lg mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 border rounded-lg mb-2"
                 placeholder="Write a comment..."
                 rows="4"
               />
               <button
                 type="submit"
-                className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-200"
+                className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg"
               >
                 Post Comment
               </button>
             </form>
           ) : (
-            // If user is a guest, show a disabled comment box with a login prompt overlay
             <div className="mb-6 relative">
               <textarea
-                className="w-full p-2 border rounded-lg mb-2 bg-gray-100"
-                placeholder="Write a comment..."
+                className="w-full p-2 border rounded-lg bg-gray-100"
                 rows="4"
                 disabled
               />
-              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center rounded-lg">
-                <p className="font-bold text-gray-800 text-lg">
+              <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center">
+                <p className="font-bold text-lg">
                   Want to join the discussion?
                 </p>
                 <button
                   onClick={() => navigate("/login")}
-                  className="mt-2 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-200 shadow-md"
+                  className="mt-2 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg"
                 >
                   Log In to Comment
                 </button>
               </div>
             </div>
           )}
-          {/* --- END OF UPDATED LOGIC --- */}
 
           {/* Display Comments */}
           <div className="space-y-4">
@@ -239,7 +213,7 @@ const BookDetails = () => {
                         user._id === comment.user.id) && (
                         <button
                           onClick={() => handleDeleteComment(comment._id)}
-                          className="text-red-500 hover:text-red-700 text-sm"
+                          className="text-red-500 text-sm"
                         >
                           Delete
                         </button>
@@ -252,9 +226,7 @@ const BookDetails = () => {
                 </div>
               ))
             ) : (
-              <p className="text-gray-600">
-                No comments yet. Be the first to comment!
-              </p>
+              <p>No comments yet. Be the first to comment!</p>
             )}
           </div>
         </div>

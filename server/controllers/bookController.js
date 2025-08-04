@@ -1,217 +1,138 @@
 import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
 import ErrorHandler from "../middlewares/errorMiddlewares.js";
 import { Book } from "../models/bookModel.js";
-import { Borrow } from "../models/borrowModel.js"; // Import Borrow for borrow counts
+import { Borrow } from "../models/borrowModel.js";
 import { User } from "../models/userModel.js";
 import { sendEmail } from "../utils/sendEmail.js";
 
 // --- PUBLIC CONTROLLERS ---
-
-/**
- * @desc Get all books, sorted alphabetically by title.
- * This controller is for public, non-authenticated access,
- * typically used for a landing page or public catalog.
- * @route GET /api/v1/book/public/all
- * @access Public
- */
 export const getPublicBooks = catchAsyncErrors(async (req, res, next) => {
-    const books = await Book.find().sort({ title: 1 }); // Sort alphabetically
-    res.status(200).json({
-        success: true,
-        books,
-    });
+  const books = await Book.find().sort({ title: 1 });
+  res.status(200).json({ success: true, books });
 });
 
-/**
- * @desc Get a single book by its ID.
- * This is a public route, allowing anyone to view book details.
- * @route GET /api/v1/book/:id
- * @access Public
- */
 export const getSingleBook = catchAsyncErrors(async (req, res, next) => {
-    const { id } = req.params;
-    const book = await Book.findById(id);
-
-    if (!book) {
-        return next(new ErrorHandler("Book not found.", 404));
-    }
-
-    res.status(200).json({
-        success: true,
-        book,
-    });
+  const { id } = req.params;
+  const book = await Book.findById(id);
+  if (!book) {
+    return next(new ErrorHandler("Book not found.", 404));
+  }
+  res.status(200).json({ success: true, book });
 });
-
 
 // --- AUTHENTICATED CONTROLLERS ---
-
-/**
- * @desc Get all books and their borrow counts.
- * This controller is for authenticated users and provides more data
- * for sorting and management within the application.
- * @route GET /api/v1/book/all
- * @access Authenticated
- */
 export const getAllBook = catchAsyncErrors(async (req, res, next) => {
-    let books = await Book.find().lean(); // Use .lean() for plain JS objects for efficiency
+  let books = await Book.find().lean();
+  const borrowCounts = await Borrow.aggregate([
+    { $group: { _id: "$book", count: { $sum: 1 } } },
+  ]);
 
-    // Aggregate borrow counts from the Borrow collection
-    const borrowCounts = await Borrow.aggregate([
-        { $group: { _id: "$book", count: { $sum: 1 } } }
-    ]);
+  const borrowCountMap = new Map();
+  borrowCounts.forEach((item) => {
+    borrowCountMap.set(item._id.toString(), item.count);
+  });
 
-    const borrowCountMap = new Map();
-    borrowCounts.forEach(item => {
-        borrowCountMap.set(item._id.toString(), item.count);
-    });
+  books = books.map((book) => ({
+    ...book,
+    borrowCount: borrowCountMap.get(book._id.toString()) || 0,
+  }));
 
-    // Add borrowCount to each book object for front-end sorting
-    books = books.map(book => ({
-        ...book,
-        borrowCount: borrowCountMap.get(book._id.toString()) || 0
-    }));
-
-    res.status(200).json({
-        success: true,
-        books,
-    });
+  res.status(200).json({ success: true, books });
 });
 
-/**
- * @desc Add a new book to the database.
- * This action is restricted to users with an 'Admin' role.
- * @route POST /api/v1/book/admin/add
- * @access Admin
- */
 export const addBook = catchAsyncErrors(async (req, res, next) => {
-    const { title, author, description, price, quantity, totalCopies } = req.body;
-    if (!title || !author || !description || !price || !quantity || !totalCopies) {
-        return next(new ErrorHandler("Please enter all fields.", 400));
-    }
-    await Book.create({ title, author, description, price, quantity, totalCopies });
-    res.status(201).json({
-        success: true,
-        message: "Book Added Successfully.",
-    });
+  const { title, author, description, price, quantity, totalCopies } = req.body;
+  if (!title || !author || !description || !price || quantity === undefined || totalCopies === undefined) {
+    return next(new ErrorHandler("Please enter all fields.", 400));
+  }
+  await Book.create({ title, author, description, price, quantity, totalCopies });
+  res.status(201).json({
+    success: true,
+    message: "Book Added Successfully.",
+  });
 });
 
-/**
- * @desc Update an existing book's details.
- * This action is restricted to users with an 'Admin' role.
- * @route PUT /api/v1/book/admin/update/:id
- * @access Admin
- */
 export const updateBook = catchAsyncErrors(async (req, res, next) => {
     const { id } = req.params;
-    const { title, author, description, price, quantity, totalCopies } = req.body;
-    
+    const { title, author, description, price } = req.body;
     let book = await Book.findById(id);
-
-    if (!book) {
-        return next(new ErrorHandler("Book not found.", 404));
-    }
-
-    const wasUnavailable = book.quantity === 0;
+    if (!book) { return next(new ErrorHandler("Book not found.", 404)); }
 
     book.title = title;
     book.author = author;
     book.description = description;
     book.price = price;
-    book.quantity = quantity;
-    book.totalCopies = totalCopies;
 
     await book.save();
-    
-    const isNowAvailable = wasUnavailable && book.quantity > 0;
-
-    // NOTIFICATION LOGIC
-    if (isNowAvailable && book.subscribers.length > 0) {
-        const subscribers = await User.find({ '_id': { $in: book.subscribers } }).select('email name');
-
-        for (const sub of subscribers) {
-            const message = `
-                <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
-                    <h2>Book Back in Stock!</h2>
-                    <p>Hello ${sub.name},</p>
-                    <p>Great news! The book "<strong>${book.title}</strong>" you were waiting for is now back in stock.</p>
-                    <p>Hurry up and pre-book your copy before it's gone again!</p>
-                    <a href="${process.env.FRONTEND_URL}/book/${book._id}" style="display: inline-block; padding: 10px 20px; background-color: #2f80ed; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px;">
-                        View Book
-                    </a>
-                </div>
-            `;
-            await sendEmail({
-                email: sub.email,
-                subject: `BookNest: "${book.title}" is Available!`,
-                message,
-            });
-        }
-        
-        // Clear subscribers list after notifying
-        book.subscribers = [];
-        await book.save();
-    }
 
     res.status(200).json({
         success: true,
-        message: "Book updated successfully.",
+        message: "Book details updated successfully.",
     });
 });
 
-/**
- * @desc Increment a book's quantity and totalCopies by one.
- * This is an administrative action.
- * @route PUT /api/v1/book/admin/increment/:id
- * @access Admin
- */
+// Controller to increment quantity
 export const incrementBookQuantity = catchAsyncErrors(async (req, res, next) => {
-    const { id } = req.params;
-    const book = await Book.findByIdAndUpdate(id, { $inc: { quantity: 1, totalCopies: 1 } }, { new: true });
-    if (!book) return next(new ErrorHandler("Book not found", 404));
+  const { id } = req.params;
+  const book = await Book.findById(id);
+  if (!book) { return next(new ErrorHandler("Book not found", 404)); }
 
-    // Placeholder for future logic, e.g., notifying users on availability
-    if (book.quantity === 1) {
-        // Notification logic would go here
+  const wasUnavailable = book.quantity === 0;
+
+  book.quantity += 1;
+  book.totalCopies += 1; 
+  await book.save();
+
+  const isNowAvailable = wasUnavailable && book.quantity > 0;
+
+  if (isNowAvailable && book.subscribers.length > 0) {
+    const subscribers = await User.find({ '_id': { $in: book.subscribers } }).select('email name');
+    for (const sub of subscribers) {
+        const message = `
+          <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
+          <h2>Book Back in Stock!</h2>
+          <p>Hello ${sub.name},</p>
+          <p>Great news! The book "<strong>${book.title}</strong>" you were waiting for is now back in stock.</p>
+          <p>Hurry up and pre-book your copy before it's gone again!</p>
+          <a href="${process.env.FRONTEND_URL}/book/${book._id}" style="display: inline-block; padding: 10px 20px; background-color: #2f80ed; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px;">
+            View Book
+          </a>
+          </div>`;
+        await sendEmail({
+            email: sub.email,
+            subject: `BookNest: "${book.title}" is Available!`,
+            message,
+        });
     }
-
-    res.status(200).json({ success: true, message: "Quantity increased", book });
-});
-
-/**
- * @desc Decrement a book's quantity and totalCopies by one.
- * This is an administrative action and includes a check for quantity.
- * @route PUT /api/v1/book/admin/decrement/:id
- * @access Admin
- */
-export const decrementBookQuantity = catchAsyncErrors(async (req, res, next) => {
-    const { id } = req.params;
-    const book = await Book.findById(id);
-    if (!book) return next(new ErrorHandler("Book not found", 404));
-    if (book.quantity <= 0) return next(new ErrorHandler("Cannot decrease quantity below zero", 400));
-
-    book.quantity -= 1;
-    book.totalCopies -=1;
+    book.subscribers = [];
     await book.save();
+  }
 
-    res.status(200).json({ success: true, message: "Quantity decreased", book });
+  res.status(200).json({ success: true, message: "Quantity increased", book });
+});
+
+// Controller to decrement quantity
+export const decrementBookQuantity = catchAsyncErrors(async (req, res, next) => {
+  const { id } = req.params;
+  const book = await Book.findById(id);
+  if (!book) { return next(new ErrorHandler("Book not found", 404)); }
+  if (book.quantity <= 0) { return next(new ErrorHandler("Cannot decrease quantity below zero", 400)); }
+
+  book.quantity -= 1;
+  book.totalCopies -= 1;
+  await book.save();
+
+  res.status(200).json({ success: true, message: "Quantity decreased", book });
 });
 
 
-/**
- * @desc Delete a book by its ID.
- * This action is restricted to users with an 'Admin' role.
- * @route DELETE /api/v1/book/admin/delete/:id
- * @access Admin
- */
 export const deleteBook = catchAsyncErrors(async (req, res, next) => {
-    const { id } = req.params;
-    const book = await Book.findById(id);
-    if (!book) {
-        return next(new ErrorHandler("Book not found.", 404));
-    }
-    await book.deleteOne();
-    res.status(200).json({
-        success: true,
-        message: "Book deleted successfully.",
-    });
+  const { id } = req.params;
+  const book = await Book.findById(id);
+  if (!book) { return next(new ErrorHandler("Book not found.", 404)); }
+  await book.deleteOne();
+  res.status(200).json({
+    success: true,
+    message: "Book deleted successfully.",
+  });
 });

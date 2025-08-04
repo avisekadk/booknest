@@ -1,3 +1,5 @@
+// client/src/store/slices/bookSlice.js
+
 import { createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
@@ -12,11 +14,8 @@ const bookSlice = createSlice({
   name: "book",
   initialState,
   reducers: {
-    // Fetch all books
     fetchBooksRequest: (state) => {
       state.loading = true;
-      state.error = null;
-      state.message = null;
     },
     fetchBooksSuccess: (state, action) => {
       state.loading = false;
@@ -26,12 +25,8 @@ const bookSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
-
-    // Add book
     addBookRequest: (state) => {
       state.loading = true;
-      state.error = null;
-      state.message = null;
     },
     addBookSuccess: (state, action) => {
       state.loading = false;
@@ -41,12 +36,8 @@ const bookSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
-
-    // Update book
     updateBookRequest: (state) => {
       state.loading = true;
-      state.error = null;
-      state.message = null;
     },
     updateBookSuccess: (state, action) => {
       state.loading = false;
@@ -56,12 +47,8 @@ const bookSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
-
-    // Delete book
     deleteBookRequest: (state) => {
       state.loading = true;
-      state.error = null;
-      state.message = null;
     },
     deleteBookSuccess: (state, action) => {
       state.loading = false;
@@ -74,8 +61,22 @@ const bookSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
-
-    // Reset state
+    // Reducers for quantity changes
+    changeQuantityRequest: (state) => {
+      state.loading = true;
+    },
+    changeQuantitySuccess: (state, action) => {
+      state.loading = false;
+      state.message = action.payload.message;
+      const index = state.books.findIndex(book => book._id === action.payload.book._id);
+      if (index !== -1) {
+        state.books[index] = action.payload.book;
+      }
+    },
+    changeQuantityFailed: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    },
     resetBookSlice: (state) => {
       state.loading = false;
       state.error = null;
@@ -84,9 +85,7 @@ const bookSlice = createSlice({
   },
 });
 
-// -----------------
-// Async Actions
-// -----------------
+// --- Async Actions ---
 
 export const fetchAllBooks = () => async (dispatch) => {
   dispatch(bookSlice.actions.fetchBooksRequest());
@@ -96,34 +95,24 @@ export const fetchAllBooks = () => async (dispatch) => {
     });
     dispatch(bookSlice.actions.fetchBooksSuccess(data.books));
   } catch (err) {
-    dispatch(
-      bookSlice.actions.fetchBooksFailed(
-        err.response?.data?.message || "Failed to fetch books"
-      )
-    );
+    dispatch(bookSlice.actions.fetchBooksFailed(err.response?.data?.message));
   }
 };
 
-export const addBook = (data) => async (dispatch) => {
+export const addBook = (bookData) => async (dispatch) => {
   dispatch(bookSlice.actions.addBookRequest());
   try {
     const { data: responseData } = await axios.post(
       "http://localhost:4000/api/v1/book/admin/add",
-      data,
+      bookData,
       {
         withCredentials: true,
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       }
     );
     dispatch(bookSlice.actions.addBookSuccess(responseData.message));
   } catch (err) {
-    dispatch(
-      bookSlice.actions.addBookFailed(
-        err.response?.data?.message || "Failed to add book"
-      )
-    );
+    dispatch(bookSlice.actions.addBookFailed(err.response?.data?.message));
   }
 };
 
@@ -133,35 +122,23 @@ export const updateBook = (id, bookData) => async (dispatch) => {
     const { data } = await axios.put(
       `http://localhost:4000/api/v1/book/admin/update/${id}`,
       bookData,
-      {
-        withCredentials: true,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
+      { withCredentials: true, headers: { "Content-Type": "application/json" } }
     );
     dispatch(bookSlice.actions.updateBookSuccess(data.message));
   } catch (error) {
-    dispatch(
-      bookSlice.actions.updateBookFailed(
-        error.response?.data?.message || "Failed to update book"
-      )
-    );
+    dispatch(bookSlice.actions.updateBookFailed(error.response?.data?.message));
   }
 };
 
 export const deleteBook = (id) => async (dispatch) => {
   dispatch(bookSlice.actions.deleteBookRequest());
   try {
+    // The URL was wrong. It should include "/admin".
     const { data } = await axios.delete(
-      `http://localhost:4000/api/v1/book/delete/${id}`,
-      {
-        withCredentials: true,
-      }
+      `http://localhost:4000/api/v1/book/admin/delete/${id}`, // Corrected URL
+      { withCredentials: true }
     );
-    dispatch(
-      bookSlice.actions.deleteBookSuccess({ message: data.message, bookId: id })
-    );
+    dispatch(bookSlice.actions.deleteBookSuccess({ message: data.message, bookId: id }));
     return data.message;
   } catch (error) {
     const errMsg = error?.response?.data?.message || "Failed to delete book";
@@ -170,10 +147,39 @@ export const deleteBook = (id) => async (dispatch) => {
   }
 };
 
-// Reset state (call in components to clear messages/errors)
+// Action for incrementing quantity
+export const incrementQuantity = (id) => async (dispatch) => {
+  dispatch(bookSlice.actions.changeQuantityRequest());
+  try {
+    const { data } = await axios.put(
+      `http://localhost:4000/api/v1/book/admin/increment/${id}`,
+      {},
+      { withCredentials: true }
+    );
+    dispatch(bookSlice.actions.changeQuantitySuccess(data));
+  } catch (error) {
+    dispatch(bookSlice.actions.changeQuantityFailed(error.response?.data?.message));
+  }
+};
+
+// Action for decrementing quantity
+export const decrementQuantity = (id) => async (dispatch) => {
+  dispatch(bookSlice.actions.changeQuantityRequest());
+  try {
+    const { data } = await axios.put(
+      `http://localhost:4000/api/v1/book/admin/decrement/${id}`,
+      {},
+      { withCredentials: true }
+    );
+    dispatch(bookSlice.actions.changeQuantitySuccess(data));
+  } catch (error) {
+    dispatch(bookSlice.actions.changeQuantityFailed(error.response?.data?.message));
+  }
+};
+
+
 export const resetBookSlice = () => (dispatch) => {
   dispatch(bookSlice.actions.resetBookSlice());
 };
 
-// Export reducer
 export default bookSlice.reducer;
