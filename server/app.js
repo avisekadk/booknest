@@ -1,4 +1,3 @@
-// server/app.js
 import express from "express";
 import { config } from "dotenv";
 import cookieParser from "cookie-parser";
@@ -17,6 +16,7 @@ import userRouter from "./routes/userRouter.js";
 import kycRouter from "./routes/kycRouter.js";       // For KYC management
 import commentRouter from "./routes/commentRouter.js"; // For handling comments
 import prebookingRouter from "./routes/prebookingRouter.js"; // For book pre-bookings
+import notificationRouter from "./routes/notificationRouter.js"; // Import notification router
 
 export const app = express();
 
@@ -48,6 +48,7 @@ app.use("/api/v1/user", userRouter);
 app.use("/api/v1/kyc", kycRouter);
 app.use("/api/v1/comment", commentRouter);
 app.use("/api/v1/prebook", prebookingRouter);
+app.use("/api/v1/notification", notificationRouter); // Mount the router
 
 // --- SERVICES & DB CONNECTION ---
 // Call services and connect to the database

@@ -54,6 +54,17 @@ const Catalog = () => {
     ).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
   };
 
+  const calculateFine = (dueDate) => {
+    const finePerHour = 0.1;
+    const now = new Date();
+    const due = new Date(dueDate);
+    if (now > due) {
+      const lateHours = Math.ceil((now - due) / (1000 * 60 * 60));
+      return (lateHours * finePerHour).toFixed(2);
+    }
+    return "0.00";
+  };
+
   const currentDate = new Date();
 
   // Filter books based on borrowed/overdue status and search keyword
@@ -258,6 +269,7 @@ const Catalog = () => {
                   <th className="px-6 py-3">Email</th>
                   <th className="px-6 py-3">Book</th>
                   <th className="px-6 py-3 hidden sm:table-cell">Price</th>
+                  <th className="px-6 py-3">Fine</th>
                   <th className="px-6 py-3 hidden md:table-cell">Due Date</th>
                   <th className="px-6 py-3 hidden lg:table-cell">
                     Borrowed On
@@ -269,6 +281,8 @@ const Catalog = () => {
                 {currentBooks.map((book, index) => {
                   const bookId = book?.book?._id || book?.book;
                   const bookTitle = bookMap[bookId];
+                  const isOverdue = new Date() > new Date(book.dueDate);
+                  const fine = isOverdue ? calculateFine(book.dueDate) : "0.00";
 
                   return (
                     <tr
@@ -289,6 +303,13 @@ const Catalog = () => {
                       </td>
                       <td className="px-6 py-4 text-gray-700 hidden sm:table-cell">
                         $ {book.price || "N/A"}
+                      </td>
+                      <td className="px-6 py-4 font-bold">
+                        {isOverdue && !book.returnDate ? (
+                          <span className="text-red-600">${fine}</span>
+                        ) : (
+                          <span className="text-gray-500">$0.00</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-gray-700 hidden md:table-cell">
                         {formatDate(book.dueDate)}

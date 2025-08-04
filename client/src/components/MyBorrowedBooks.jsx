@@ -57,6 +57,17 @@ const MyBorrowedBooks = () => {
     return `${formattedDate} ${formattedTime}`;
   };
 
+  const calculateFine = (dueDate) => {
+    const finePerHour = 0.1;
+    const now = new Date();
+    const due = new Date(dueDate);
+    if (now > due) {
+      const lateHours = Math.ceil((now - due) / (1000 * 60 * 60));
+      return (lateHours * finePerHour).toFixed(2);
+    }
+    return "0.00";
+  };
+
   // Filter and sort books based on the 'returned' state and most recent borrow date
   const filteredBooks = useMemo(() => {
     const booksToSort = (userBorrowedBooks || []).filter((book) =>
@@ -216,45 +227,55 @@ const MyBorrowedBooks = () => {
                 </tr>
               </thead>
               <tbody>
-                {currentBooks.map((book, index) => (
-                  <tr
-                    key={book.borrowId || index}
-                    className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                  >
-                    <td className="px-4 py-4 sm:px-6 text-gray-800">
-                      {indexOfFirstBook + index + 1}
-                    </td>
-                    <td className="px-4 py-4 sm:px-6 text-gray-800 font-medium">
-                      {book.bookTitle}
-                    </td>
-                    <td className="px-4 py-4 sm:px-6 text-gray-700 hidden md:table-cell">
-                      {formatDate(book.borrowedDate)}
-                    </td>
-                    <td className="px-4 py-4 sm:px-6 text-gray-700 hidden lg:table-cell">
-                      {formatDate(book.dueDate)}
-                    </td>
-                    <td className="px-4 py-4 sm:px-6">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          book.returned
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {book.returned ? "Yes" : "No"}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 sm:px-6 flex justify-center">
-                      <button
-                        onClick={() => openReadPopup(book.bookId)}
-                        aria-label={`View ${book.bookTitle}`}
-                        className="p-2 rounded-full hover:bg-blue-100 text-blue-600 transition duration-200 transform hover:scale-110"
-                      >
-                        <BookA className="w-5 h-5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {currentBooks.map((book, index) => {
+                  const isOverdue =
+                    !book.returned && new Date() > new Date(book.dueDate);
+                  const fine = isOverdue ? calculateFine(book.dueDate) : "0.00";
+                  return (
+                    <tr
+                      key={book.borrowId || index}
+                      className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                    >
+                      <td className="px-4 py-4 sm:px-6 text-gray-800">
+                        {indexOfFirstBook + index + 1}
+                      </td>
+                      <td className="px-4 py-4 sm:px-6 text-gray-800 font-medium">
+                        {book.bookTitle}
+                      </td>
+                      <td className="px-4 py-4 sm:px-6 text-gray-700 hidden md:table-cell">
+                        {formatDate(book.borrowedDate)}
+                      </td>
+                      <td className="px-4 py-4 sm:px-6 text-gray-700 hidden lg:table-cell">
+                        {formatDate(book.dueDate)}
+                      </td>
+                      <td className="px-4 py-4 sm:px-6">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            book.returned
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {book.returned ? "Yes" : "No"}
+                        </span>
+                        {isOverdue && (
+                          <span className="text-red-600 font-bold ml-2">
+                            Fine: ${fine}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-4 sm:px-6 flex justify-center">
+                        <button
+                          onClick={() => openReadPopup(book.bookId)}
+                          aria-label={`View ${book.bookTitle}`}
+                          className="p-2 rounded-full hover:bg-blue-100 text-blue-600 transition duration-200 transform hover:scale-110"
+                        >
+                          <BookA className="w-5 h-5" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

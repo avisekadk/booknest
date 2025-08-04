@@ -1,6 +1,7 @@
 import ErrorHandler from "../middlewares/errorMiddlewares.js";
 import { User } from "../models/userModel.js";
-import { Borrow } from "../models/borrowModel.js"; // Import Borrow model
+import { Borrow } from "../models/borrowModel.js";
+import { Prebooking } from "../models/prebookingModel.js";
 import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
 import bcrypt from "bcrypt";
 import { v2 as cloudinary } from "cloudinary";
@@ -12,10 +13,10 @@ export const getAllUsers = catchAsyncErrors(async (req, res, next) => {
         users,
     });
 });
- 
+
 export const registerNewAdmin = catchAsyncErrors(async (req, res, next) => {
     if (!req.files || Object.keys(req.files).length === 0) {
-        return next(new ErrorHandler("Admin avtar is required.", 400));
+        return next(new ErrorHandler("Admin avatar is required.", 400));
     }
     const { name, email, password } = req.body;
     if (!name || !email || !password) {
@@ -26,7 +27,7 @@ export const registerNewAdmin = catchAsyncErrors(async (req, res, next) => {
         return next(new ErrorHandler("User already registered", 400));
     }
     if (password.length < 8 || password.length > 16) {
-        return next(new ErrorHandler("Password must be between 8 and 16 character.", 400));
+        return next(new ErrorHandler("Password must be between 8 and 16 characters.", 400));
     }
     const { avatar } = req.files;
     const allowedFormats = ["image/png", "image/jpeg", "image/webp"];
@@ -47,43 +48,45 @@ export const registerNewAdmin = catchAsyncErrors(async (req, res, next) => {
         name,
         email,
         password: hashedPassword,
-        role:"Admin",
-        accountVerified:true,
-        avatar:{
-            public_id:cloudinaryResponse.public_id,
-            url:cloudinaryResponse.secure_url
+        role: "Admin",
+        accountVerified: true,
+        avatar: {
+            public_id: cloudinaryResponse.public_id,
+            url: cloudinaryResponse.secure_url
         }
     });
     res.status(201).json({
-        success:true,
-        message:"Admin registered successfully.",
+        success: true,
+        message: "Admin registered successfully.",
         admin: user,
     });
 });
 
-// NEW CONTROLLER FOR QR SCANNER
+// CORRECTED CONTROLLER FOR QR SCANNER
 export const getUserDetailsById = catchAsyncErrors(async (req, res, next) => {
-  const { id } = req.params;
-  // Find user by ID and select only the name and email
-  const user = await User.findById(id).select("name email");
+    const { id } = req.params;
+    const user = await User.findById(id).select("name email");
 
-  if (!user) {
-    return next(new ErrorHandler("User not found.", 404));
-  }
+    if (!user) {
+        return next(new ErrorHandler("User not found.", 404));
+    }
 
-  // Fetch the complete borrow history from the 'Borrow' collection for this user
-  const borrowHistory = await Borrow.find({ "user.id": id })
-    .populate("book", "title") // Populate the book's title
-    .sort({ createdAt: -1 }); // Show the most recent records first
+    const borrowHistory = await Borrow.find({ "user.id": id })
+        .populate("book", "title")
+        .sort({ createdAt: -1 });
 
-  // Respond with a structured object containing user details and their full borrow history
-  res.status(200).json({
-    success: true,
-    user: {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      borrowHistory: borrowHistory, // This array will be used by the scanner popup
-    },
-  });
+    // Fetch pre-bookings for the user
+    const prebookings = await Prebooking.find({ userId: id })
+        .populate('bookId', 'title');
+
+    res.status(200).json({
+        success: true,
+        user: {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            borrowHistory: borrowHistory,
+            prebookings: prebookings
+        },
+    });
 });

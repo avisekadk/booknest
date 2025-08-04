@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom"; // Import Link for navigation
-import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
 import { Pie } from "react-chartjs-2";
 import Header from "../layout/Header";
 
 // Import icons and images
-import logo_with_title from "../assets/logo-with-title-black.png";
 import returnIcon from "../assets/redo.png";
 import browseIcon from "../assets/pointing.png";
 import bookIcon from "../assets/book-square.png";
 import logo from "../assets/black-logo.png";
+import { deleteNotification } from "../store/slices/notificationSlice"; // This import should now work
 
 // Chart.js imports and registration
 import {
@@ -24,7 +24,6 @@ import {
   PointElement,
   ArcElement,
 } from "chart.js";
-
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -38,10 +37,8 @@ ChartJS.register(
 );
 
 const UserDashboard = () => {
-  const { settingPopup } = useSelector((state) => state.popup || {});
+  const dispatch = useDispatch();
   const { userBorrowedBooks = [] } = useSelector((state) => state.borrow || {});
-
-  // Safely destructure prebookings and notifications from the Redux store
   const { prebookings = [] } = useSelector((state) => state.prebook || {});
   const { notifications = [] } = useSelector(
     (state) => state.notification || {}
@@ -79,67 +76,73 @@ const UserDashboard = () => {
     <main className="relative flex-1 p-6 pt-28 font-inter bg-gray-100 min-h-screen">
       <Header />
       <div className="flex flex-col-reverse xl:flex-row gap-6">
-        {/* LEFT SIDE - User Stats and Quote */}
+        {/* LEFT SIDE */}
         <div className="flex-[4] flex flex-col gap-6 lg:py-4 justify-between">
-          <div className="flex flex-col gap-6">
-            {/* Top Row Cards */}
-            <div className="flex flex-col lg:flex-row gap-6">
-              {/* Borrowed Books Card */}
-              <div className="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-xl transition duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-2xl flex-1 cursor-pointer">
-                <span className="w-[2px] bg-[#0003CB] h-14 rounded-full"></span>
-                <span className="bg-blue-100 h-14 w-14 flex justify-center items-center rounded-xl p-4 shadow-md">
-                  <img src={bookIcon} alt="book-icon" className="w-6 h-6" />
-                </span>
-                <div className="flex flex-col">
-                  <p className="text-3xl font-extrabold text-[#2C3E50]">
-                    {totalBorrowedBooks}
-                  </p>
-                  <span className="text-base text-gray-600 font-medium">
-                    Borrowed Books
-                  </span>
-                </div>
-              </div>
-              {/* Returned Books Card */}
-              <div className="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-xl transition duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-2xl flex-1 cursor-pointer">
-                <span className="w-[2px] bg-[#2079C2] h-14 rounded-full"></span>
-                <span className="bg-blue-100 h-14 w-14 flex justify-center items-center rounded-xl p-4 shadow-md">
-                  <img src={returnIcon} alt="return-icon" className="w-6 h-6" />
-                </span>
-                <div className="flex flex-col">
-                  <p className="text-3xl font-extrabold text-[#2C3E50]">
-                    {totalReturnedBooks}
-                  </p>
-                  <span className="text-base text-gray-600 font-medium">
-                    Returned Books
-                  </span>
-                </div>
-              </div>
-            </div>
-            {/* Bottom Row Cards */}
-            <div className="flex flex-col lg:flex-row gap-6">
-              {/* Browse Books Inventory Card */}
-              <div className="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-xl transition duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-2xl flex-1 cursor-pointer">
-                <span className="w-[2px] bg-gray-300 h-14 rounded-full"></span>
-                <span className="bg-blue-100 h-14 w-14 flex justify-center items-center rounded-xl p-4 shadow-md">
-                  <img src={browseIcon} alt="browse-icon" className="w-6 h-6" />
-                </span>
-                <p className="text-lg xl:text-xl font-semibold text-[#2C3E50]">
-                  Let's browse books inventory
+          {/* ... Cards ... */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            {/* Pre-Booked Books Card */}
+            <div className="bg-white p-6 rounded-2xl shadow-xl">
+              <h3 className="text-xl font-bold mb-4">My Pre-Bookings</h3>
+              {prebookings.length > 0 ? (
+                prebookings.map((prebook) => (
+                  <div
+                    key={prebook._id}
+                    className="border-b last:border-b-0 py-2"
+                  >
+                    <p>{prebook.bookId?.title}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500">
+                  You have no active pre-bookings.
                 </p>
-              </div>
+              )}
             </div>
-          </div>
-          {/* Quote Card */}
-          <div className="bg-white p-6 text-xl font-semibold text-[#2C3E50] relative flex justify-center items-center rounded-2xl shadow-xl min-h-40">
-            <h4 className="overflow-y-hidden text-center">
-              “Reading is to the mind what exercise is to the body.”
-            </h4>
-            <p className="text-gray-600 text-sm absolute right-6 bottom-3">
-              ~ Book Nest Developers
-            </p>
+
+            {/* Notification List Card */}
+            <div className="bg-white p-6 rounded-2xl shadow-xl">
+              <h3 className="text-xl font-bold mb-4">My Notification List</h3>
+              {notifications.length > 0 ? (
+                notifications.map((notification) => (
+                  <div
+                    key={notification._id}
+                    className="flex justify-between items-center py-2 border-b last:border-b-0"
+                  >
+                    <p>
+                      {notification.type === "availability" &&
+                      notification.bookId ? (
+                        <>
+                          <span className="font-semibold text-green-700">
+                            {notification.message}
+                          </span>
+                          <Link
+                            to={`/book/${notification.bookId}`}
+                            className="text-sm text-green-700 font-bold ml-2"
+                          >
+                            Pre-Book Now!
+                          </Link>
+                        </>
+                      ) : (
+                        <span>{notification.message}</span>
+                      )}
+                    </p>
+                    <button
+                      onClick={() =>
+                        dispatch(deleteNotification(notification._id))
+                      }
+                      className="text-sm text-red-500 hover:text-red-700 font-bold"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500">You have no new notifications.</p>
+              )}
+            </div>
           </div>
         </div>
-        {/* RIGHT SIDE - Pie Chart and Legend */}
+        {/* RIGHT SIDE */}
         <div className="flex-[2] flex flex-col gap-6 lg:flex-row lg:items-center xl:flex-col justify-between py-4">
           {/* Pie Chart Container */}
           <div className="bg-white rounded-2xl shadow-xl p-6 flex-1 flex flex-col justify-center items-center min-h-[300px]">
@@ -175,64 +178,7 @@ const UserDashboard = () => {
           </div>
         </div>
       </div>
-      {/* --- NEW SECTION FOR PRE-BOOKINGS AND NOTIFICATIONS --- */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        {/* Pre-Booked Books Card */}
-        <div className="bg-white p-6 rounded-2xl shadow-xl">
-          <h3 className="text-xl font-bold mb-4">My Pre-Bookings</h3>
-          {/* Map through prebookings here */}
-          {prebookings.length > 0 ? (
-            prebookings.map((prebook) => (
-              <div key={prebook.id} className="border-b last:border-b-0 py-2">
-                <p>{prebook.title}</p>
-              </div>
-            ))
-          ) : (
-            <p className="text-gray-500">You have no active pre-bookings.</p>
-          )}
-        </div>
-
-        {/* Notification List Card */}
-        <div className="bg-white p-6 rounded-2xl shadow-xl">
-          <h3 className="text-xl font-bold mb-4">My Notification List</h3>
-          {/* Map through notifications here */}
-          {notifications.length > 0 ? (
-            notifications.map((notification) => (
-              <div
-                key={notification.id}
-                className="flex justify-between items-center py-2 border-b last:border-b-0"
-              >
-                <p>
-                  {notification.isAvailable ? (
-                    <span className="font-semibold text-green-700">
-                      {notification.title} is now available!
-                    </span>
-                  ) : (
-                    <span>{notification.title}</span>
-                  )}
-                </p>
-                {notification.isAvailable ? (
-                  <Link
-                    to={`/book/${notification.bookId}`}
-                    className="text-sm text-green-700 font-bold"
-                  >
-                    Pre-Book Now!
-                  </Link>
-                ) : (
-                  <span className="text-sm text-gray-500">Waiting</span>
-                )}
-              </div>
-            ))
-          ) : (
-            <p className="text-gray-500">
-              You are not subscribed to any book notifications.
-            </p>
-          )}
-        </div>
-      </div>
-      {/* --- END OF NEW SECTION --- */}
     </main>
   );
 };
-
 export default UserDashboard;

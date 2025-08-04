@@ -153,9 +153,6 @@ const authSlice = createSlice({
             state.error = null;
             state.loading = false;
             state.message = null;
-            // state.user = state.user;
-            // state.isAuthenticated = state.isAuthenticated;
-
         }
 
     },
@@ -215,11 +212,11 @@ export const login = (data) => async (dispatch) => {
 export const logout = () => async (dispatch) => {
   dispatch(authSlice.actions.logoutRequest());
   try {
-    const res = await axios.post("http://localhost:4000/api/v1/auth/logout", {}, {
+    await axios.post("http://localhost:4000/api/v1/auth/logout", {}, {
       withCredentials: true,
     });
-    dispatch(authSlice.actions.logoutSuccess(res.data.message));
-    dispatch(authSlice.actions.resetAuthSlice());
+    dispatch(authSlice.actions.logoutSuccess("Logout Successfully."));
+    window.location.href = '/'; // Force a full page reload to the landing page
   } catch (error) {
     // Defensive check to avoid accessing undefined
     if (error.response) {

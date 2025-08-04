@@ -1,4 +1,3 @@
-// src/popups/ScannerPopup.jsx
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { Scanner } from "@yudiel/react-qr-scanner";
@@ -6,7 +5,7 @@ import { toggleScannerPopup } from "../store/slices/popUpSlice";
 import { returnBook } from "../store/slices/borrowSlice";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { Loader } from "lucide-react"; // Keeping Loader as it's a good fit
+import { Loader } from "lucide-react";
 import closeIcon from "../assets/close-square.png";
 
 const ScannerPopup = () => {
@@ -29,7 +28,7 @@ const ScannerPopup = () => {
   const handleScan = async (result) => {
     if (result && result.length > 0) {
       setIsLoading(true);
-      setError(""); // Reset previous errors
+      setError("");
       try {
         let parsedData;
         try {
@@ -49,12 +48,13 @@ const ScannerPopup = () => {
 
         const { data } = await axios.get(
           `http://localhost:4000/api/v1/user/details/${userId}`,
-          { withCredentials: true }
+          {
+            withCredentials: true,
+          }
         );
 
         console.log("API Response:", data);
 
-        // **CRITICAL CHECK**: Ensure the data structure is correct before setting state
         if (data && data.success && data.user) {
           setScannedUserData(data.user);
         } else {
@@ -73,7 +73,12 @@ const ScannerPopup = () => {
   };
 
   const handleReturn = (borrowId, userEmail) => {
-    dispatch(returnBook({ email: userEmail, id: borrowId }));
+    dispatch(
+      returnBook({
+        email: userEmail,
+        id: borrowId,
+      })
+    );
     setScannedUserData((prev) => {
       if (!prev) return null;
       const updatedHistory = prev.borrowHistory.map((book) => {
@@ -96,18 +101,15 @@ const ScannerPopup = () => {
     setIsLoading(false);
   };
 
-  // Use optional chaining `?.` extensively to prevent crashes
   const nonReturnedBooks =
     scannedUserData?.borrowHistory?.filter((book) => !book.returnDate) || [];
   const returnedBooks =
     scannedUserData?.borrowHistory?.filter((book) => book.returnDate) || [];
+  const prebookedBooks = scannedUserData?.prebookings || []; // Get pre-booked books
 
   return (
-    // Outer container for the popup overlay, consistent with other popups
     <div className="fixed inset-0 bg-black bg-opacity-50 flex flex-col z-50 overflow-auto py-24 px-4 font-inter">
-      {/* Inner white popup container, consistent with other popups */}
       <div className="w-full bg-white rounded-2xl shadow-2xl max-w-lg mx-auto p-8 transition-all relative">
-        {/* Close Button - positioned absolutely for consistent placement */}
         <img
           src={closeIcon}
           alt="close-icon"
@@ -146,6 +148,29 @@ const ScannerPopup = () => {
               <p className="text-gray-600">Email: {scannedUserData.email}</p>
             </div>
 
+            {/* Pre-Booked Books Section */}
+            <div className="mb-8">
+              <h5 className="font-bold text-lg text-blue-700 mb-3">
+                Pre-Booked Books
+              </h5>
+              <div className="space-y-3 max-h-48 overflow-y-auto pr-2">
+                {prebookedBooks.length > 0 ? (
+                  prebookedBooks.map((prebook) => (
+                    <div
+                      key={prebook._id}
+                      className="p-3 rounded-lg bg-blue-50 border border-blue-200"
+                    >
+                      <span className="font-semibold text-gray-800">
+                        {prebook.bookId?.title || "Unknown Book"}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500">No pre-booked books.</p>
+                )}
+              </div>
+            </div>
+
             <div className="mb-8">
               <h5 className="font-bold text-lg text-red-700 mb-3">
                 Borrowed Books (Outstanding)
@@ -167,7 +192,6 @@ const ScannerPopup = () => {
                         }`}
                       >
                         <div>
-                          {/* **DEFENSIVE CHECK** */}
                           <span className="font-semibold text-gray-800">
                             {book.book?.title || "Unknown Book"}
                           </span>
@@ -206,7 +230,6 @@ const ScannerPopup = () => {
                       className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200"
                     >
                       <div>
-                        {/* **DEFENSIVE CHECK** */}
                         <span className="font-semibold text-gray-800">
                           {book.book?.title || "Unknown Book"}
                         </span>

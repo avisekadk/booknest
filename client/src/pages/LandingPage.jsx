@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { Book, LogIn } from "lucide-react";
-import logo from "../assets/logo-with-title-black.png";
+import logo from "../assets/black-logo.png";
 
 const LandingPage = () => {
   const [books, setBooks] = useState([]);

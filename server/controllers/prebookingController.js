@@ -1,5 +1,3 @@
-// server/controllers/prebookingController.js
-
 import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
 import ErrorHandler from "../middlewares/errorMiddlewares.js";
 import { Prebooking } from "../models/prebookingModel.js";
@@ -14,7 +12,6 @@ export const createPrebooking = catchAsyncErrors(async (req, res, next) => {
         return next(new ErrorHandler('You must complete and verify your KYC to pre-book books.', 403));
     }
 
-    // Check if the book is already in the user's borrowed list and not returned
     const isAlreadyBorrowed = borrowedBooks.find(
         (b) => b.bookId.toString() === bookId && b.returned === false
     );
@@ -25,17 +22,25 @@ export const createPrebooking = catchAsyncErrors(async (req, res, next) => {
 
     const book = await Book.findById(bookId);
     if (!book) return next(new ErrorHandler("Book not found.", 404));
+
     if (book.quantity <= 0) {
         return next(new ErrorHandler("This book is out of stock and cannot be pre-booked.", 400));
     }
+
     const existing = await Prebooking.findOne({ bookId, userId });
     if (existing) {
         return next(new ErrorHandler("You have already pre-booked this book.", 400));
     }
+
+    // Check if the number of pre-bookings is less than the available quantity
+    const prebookingCount = await Prebooking.countDocuments({ bookId });
+    if (prebookingCount >= book.quantity) {
+        return next(new ErrorHandler("All available copies of this book have been pre-booked.", 400));
+    }
+
     await Prebooking.create({ bookId, userId });
-    book.quantity -= 1;
-    await book.save();
-    res.status(201).json({ success: true, message: "Book pre-booked successfully! It will be reserved for 24 hours." });
+    // Don't decrement quantity on pre-booking, do it on borrow record
+    res.status(201).json({ success: true, message: "Book pre-booked successfully! It will be reserved for you." });
 });
 
 export const getAdminPrebookings = catchAsyncErrors(async (req, res, next) => {
@@ -52,4 +57,9 @@ export const getUsersForPrebooking = catchAsyncErrors(async (req, res, next) => 
 
     const users = prebookings.map(pb => pb.userId);
     res.status(200).json({ success: true, users });
+});
+
+export const getMyPrebookings = catchAsyncErrors(async (req, res, next) => {
+    const prebookings = await Prebooking.find({ userId: req.user._id }).populate('bookId', 'title');
+    res.status(200).json({ success: true, prebookings });
 });

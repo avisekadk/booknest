@@ -1,7 +1,8 @@
-// server/controllers/notificationController.js
 import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
 import ErrorHandler from "../middlewares/errorMiddlewares.js";
 import { Book } from "../models/bookModel.js";
+import { Notification } from "../models/notificationModel.js";
+import { User } from "../models/userModel.js"; // Ensure User is imported if needed, though not directly used here
 
 export const subscribeToBook = catchAsyncErrors(async (req, res, next) => {
     const { bookId } = req.params;
@@ -15,8 +16,7 @@ export const subscribeToBook = catchAsyncErrors(async (req, res, next) => {
     if (book.quantity > 0) {
         return next(new ErrorHandler("Book is already available.", 400));
     }
-    
-    // Add user to subscribers list if not already there
+
     if (!book.subscribers.includes(userId)) {
         book.subscribers.push(userId);
         await book.save();
@@ -26,4 +26,25 @@ export const subscribeToBook = catchAsyncErrors(async (req, res, next) => {
         success: true,
         message: "You will be notified when this book is back in stock."
     });
+});
+
+export const getMyNotifications = catchAsyncErrors(async (req, res, next) => {
+    const notifications = await Notification.find({ userId: req.user._id }).sort({ createdAt: -1 });
+    res.status(200).json({ success: true, notifications });
+});
+
+export const deleteNotification = catchAsyncErrors(async (req, res, next) => {
+    const { id } = req.params;
+    const notification = await Notification.findById(id);
+
+    if (!notification) {
+        return next(new ErrorHandler("Notification not found.", 404));
+    }
+
+    if (notification.userId.toString() !== req.user._id.toString()) {
+        return next(new ErrorHandler("You are not authorized to delete this notification.", 403));
+    }
+
+    await notification.deleteOne();
+    res.status(200).json({ success: true, message: "Notification deleted." });
 });
