@@ -8,15 +8,13 @@ import { User } from "../models/userModel.js";
 
 export const createPrebooking = catchAsyncErrors(async (req, res, next) => {
     const { bookId } = req.params;
-    [cite_start]// The req.user object is available from the isAuthenticated middleware [cite: 1115]
     const { _id: userId, kycStatus, borrowedBooks } = req.user;
 
     if (kycStatus !== 'Verified') {
         return next(new ErrorHandler('You must complete and verify your KYC to pre-book books.', 403));
     }
 
-    // --- NEW VALIDATION LOGIC ---
-    [cite_start]// Check if the book is already in the user's borrowed list and not returned [cite: 1143]
+    // Check if the book is already in the user's borrowed list and not returned
     const isAlreadyBorrowed = borrowedBooks.find(
         (b) => b.bookId.toString() === bookId && b.returned === false
     );
@@ -24,7 +22,6 @@ export const createPrebooking = catchAsyncErrors(async (req, res, next) => {
     if (isAlreadyBorrowed) {
         return next(new ErrorHandler("You have already borrowed this book and cannot pre-book it again.", 400));
     }
-    // --- END OF NEW LOGIC ---
 
     const book = await Book.findById(bookId);
     if (!book) return next(new ErrorHandler("Book not found.", 404));
@@ -42,8 +39,7 @@ export const createPrebooking = catchAsyncErrors(async (req, res, next) => {
 });
 
 export const getAdminPrebookings = catchAsyncErrors(async (req, res, next) => {
-    const prebookings = await Prebooking.find({}).populate('userId', 'name email').populate('bookId',
-        'title');
+    const prebookings = await Prebooking.find({}).populate('userId', 'name email').populate('bookId', 'title');
     res.status(200).json({ success: true, prebookings });
 });
 

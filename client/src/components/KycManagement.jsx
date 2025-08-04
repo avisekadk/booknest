@@ -15,7 +15,9 @@ const KycManagement = () => {
         "http://localhost:4000/api/v1/kyc/admin/all",
         { withCredentials: true }
       );
-      setSubmissions(data.submissions);
+      // Filter out any submissions that have a null user before setting the state
+      const validSubmissions = data.submissions.filter((sub) => sub.user);
+      setSubmissions(validSubmissions);
     } catch (error) {
       toast.error("Failed to fetch KYC submissions.");
     } finally {
@@ -67,10 +69,13 @@ const KycManagement = () => {
             {submissions.map((sub) => (
               <tr key={sub._id}>
                 <td className="py-2 px-4 border-b">
-                  {sub.user.name}
+                  {/* FIX: Use optional chaining to prevent crash on null user */}
+                  {sub.user?.name || (
+                    <span className="text-red-500">[User Deleted]</span>
+                  )}
                   <br />
                   <span className="text-sm text-gray-500">
-                    {sub.user.email}
+                    {sub.user?.email || ""}
                   </span>
                 </td>
                 <td className="py-2 px-4 border-b">{sub.phone}</td>
