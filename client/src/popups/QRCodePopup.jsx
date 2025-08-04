@@ -2,7 +2,7 @@ import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import QRCode from "react-qr-code";
 import { toggleQrCodePopup } from "../store/slices/popUpSlice";
-import closeIcon from "../assets/close-square.png";
+import { X } from "lucide-react"; // Import the X icon for consistency
 
 const QRCodePopup = () => {
   const dispatch = useDispatch();
@@ -16,28 +16,25 @@ const QRCodePopup = () => {
   });
 
   return (
-    // Outer container for the popup overlay, consistent with other popups
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex flex-col z-50 overflow-auto py-24 px-4 font-inter">
-      {/* Inner white popup container, consistent with other popups */}
-      <div className="w-full bg-white rounded-2xl shadow-2xl max-w-lg mx-auto p-8 transition-all relative">
-        {/* Close Button - positioned absolutely for consistent placement */}
-        <img
-          src={closeIcon}
-          alt="close-icon"
-          className="absolute top-4 right-4 cursor-pointer w-7 h-7"
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 font-inter">
+      <div className="w-full bg-white rounded-2xl shadow-2xl max-w-sm mx-auto p-8 relative">
+        <button
+          className="absolute top-4 right-4 text-gray-600 hover:text-gray-900 text-2xl font-bold cursor-pointer"
           onClick={() => dispatch(toggleQrCodePopup())}
-        />
-        {/* Header - Adjusted to match the centered heading style */}
-        <h3 className="text-3xl font-extrabold text-[#2C3E50] mb-6 text-center">
+          aria-label="Close"
+        >
+          <X size={24} />
+        </button>
+        <h3 className="text-2xl font-extrabold text-[#2C3E50] mb-6 text-center">
           Your QR Code
         </h3>
-        <div className="flex justify-center items-center py-6">
-          <div className="bg-white p-4 rounded-lg shadow-inner">
-            <QRCode value={qrCodeValue} size={256} />
+        <div className="flex justify-center items-center py-4">
+          <div className="bg-white p-3 rounded-lg shadow-inner border border-gray-200">
+            <QRCode value={qrCodeValue} size={200} />
           </div>
         </div>
         <p className="mt-4 text-gray-600 text-center text-sm">
-          Admins can scan this to view your borrowed books.
+          Admins can scan this to view your details.
         </p>
         <div className="flex justify-end gap-4 pt-4">
           <button

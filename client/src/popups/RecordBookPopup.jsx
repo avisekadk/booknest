@@ -4,6 +4,7 @@ import axios from "axios";
 import { recordBorrowBook } from "../store/slices/borrowSlice";
 import { toggleRecordBookPopup } from "../store/slices/popUpSlice";
 import { toast } from "react-toastify";
+import { X } from "lucide-react";
 
 const RecordBookPopup = ({ bookId }) => {
   const dispatch = useDispatch();
@@ -17,22 +18,23 @@ const RecordBookPopup = ({ bookId }) => {
       if (bookId) {
         try {
           // This endpoint needs to be created on the backend
-          const { data } = await axios.get(`/api/v1/prebook/users/${bookId}`, {
-            withCredentials: true,
-          });
+          const { data } = await axios.get(
+            `http://localhost:4000/api/v1/prebook/users/${bookId}`,
+            {
+              withCredentials: true,
+            }
+          );
           const users = data?.users || [];
           setPrebookingUsers(users);
-          // If no users are returned, switch to manual entry mode
           if (users.length === 0) {
             setManualEntry(true);
-            setSelectedUserEmail(""); // Clear any previous selection
+            setSelectedUserEmail("");
           } else {
             setSelectedUserEmail(users[0].email);
-            setManualEntry(false); // Ensure we are not in manual mode
+            setManualEntry(false);
           }
         } catch (error) {
           console.error("Could not fetch prebooking users", error);
-          // On error, default to manual entry and clear any prebooking data
           setPrebookingUsers([]);
           setManualEntry(true);
           setSelectedUserEmail("");
@@ -53,30 +55,36 @@ const RecordBookPopup = ({ bookId }) => {
     try {
       await dispatch(recordBorrowBook(finalEmail, bookId));
       toast.success("Book recorded successfully!");
-    } catch (error) {
-      console.error("Failed to record book:", error); // Log the full error
-      toast.error(error.response?.data?.message || "Failed to record book.");
-    } finally {
       dispatch(toggleRecordBookPopup());
+    } catch (error) {
+      console.error("Failed to record book:", error);
+      toast.error(error.response?.data?.message || "Failed to record book.");
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4 font-inter">
-      <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl p-8">
-        <h3 className="text-3xl font-extrabold text-center mb-6 text-[#2C3E50]">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 font-inter">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 relative">
+        <button
+          className="absolute top-4 right-4 text-gray-600 hover:text-gray-900 text-2xl font-bold cursor-pointer"
+          onClick={() => dispatch(toggleRecordBookPopup())}
+          aria-label="Close"
+        >
+          <X size={24} />
+        </button>
+        <h3 className="text-3xl font-extrabold text-[#2C3E50] mb-6 text-center">
           Record Borrow
         </h3>
         <form onSubmit={handleRecordBook}>
           {prebookingUsers.length > 0 && !manualEntry ? (
             <div className="mb-4">
-              <label className="block font-semibold mb-2">
-                Select a user from the notification list:
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Select a user from the pre-booking list:
               </label>
               <select
                 value={selectedUserEmail}
                 onChange={(e) => setSelectedUserEmail(e.target.value)}
-                className="w-full p-3 border rounded-lg"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white"
               >
                 {prebookingUsers.map((user) => (
                   <option key={user._id} value={user.email}>
@@ -88,7 +96,7 @@ const RecordBookPopup = ({ bookId }) => {
                 type="button"
                 onClick={() => {
                   setManualEntry(true);
-                  setSelectedUserEmail(""); // Clear selection when switching
+                  setSelectedUserEmail("");
                 }}
                 className="text-sm text-blue-600 mt-2 hover:underline"
               >
@@ -97,13 +105,15 @@ const RecordBookPopup = ({ bookId }) => {
             </div>
           ) : (
             <div className="mb-8">
-              <label className="block font-semibold mb-2">User Email</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Borrower's Email
+              </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Borrower's Email"
-                className="w-full p-3 border rounded-lg"
+                placeholder="Enter email address"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
                 required
               />
               {prebookingUsers.length > 0 && (
@@ -111,16 +121,16 @@ const RecordBookPopup = ({ bookId }) => {
                   type="button"
                   onClick={() => {
                     setManualEntry(false);
-                    setEmail(""); // Clear email when switching
+                    setEmail("");
                   }}
                   className="text-sm text-blue-600 mt-2 hover:underline"
                 >
-                  Or select from the notification list
+                  Or select from the pre-booking list
                 </button>
               )}
             </div>
           )}
-          <div className="flex justify-end gap-4">
+          <div className="flex justify-end gap-4 pt-4">
             <button
               type="button"
               onClick={() => dispatch(toggleRecordBookPopup())}
@@ -130,7 +140,7 @@ const RecordBookPopup = ({ bookId }) => {
             </button>
             <button
               type="submit"
-              className="px-6 py-2 rounded-lg font-bold text-white bg-blue-600 hover:bg-blue-700 transition duration-300 ease-in-out shadow-lg transform hover:scale-105"
+              className="px-6 py-2 rounded-lg font-bold text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 transition duration-300 ease-in-out shadow-lg transform hover:scale-105"
             >
               Record
             </button>

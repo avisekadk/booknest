@@ -44,16 +44,6 @@ const Catalog = () => {
     ).padStart(2, "0")}-${date.getFullYear()}`;
   };
 
-  const formatDateAndTime = (timeStamp) => {
-    if (!timeStamp) return "N/A";
-    const date = new Date(timeStamp);
-    return `${String(date.getDate()).padStart(2, "0")}-${String(
-      date.getMonth() + 1
-    ).padStart(2, "0")}-${date.getFullYear()} ${String(
-      date.getHours()
-    ).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
-  };
-
   const calculateFine = (dueDate) => {
     const finePerHour = 0.1;
     const now = new Date();
@@ -263,18 +253,14 @@ const Catalog = () => {
           <div className="mt-6 overflow-x-auto bg-white rounded-2xl shadow-xl">
             <table className="min-w-full border-collapse">
               <thead>
-                <tr className="bg-blue-50 text-blue-800 font-semibold text-left">
-                  <th className="px-6 py-3">ID</th>
-                  <th className="px-6 py-3">User Name</th>
-                  <th className="px-6 py-3">Email</th>
-                  <th className="px-6 py-3">Book</th>
-                  <th className="px-6 py-3 hidden sm:table-cell">Price</th>
-                  <th className="px-6 py-3">Fine</th>
-                  <th className="px-6 py-3 hidden md:table-cell">Due Date</th>
-                  <th className="px-6 py-3 hidden lg:table-cell">
-                    Borrowed On
-                  </th>
-                  <th className="px-6 py-3 text-center">Actions</th>
+                <tr className="bg-blue-50 text-blue-800 text-left text-sm font-semibold">
+                  <th className="px-4 py-3">ID</th>
+                  <th className="px-4 py-3 min-w-[150px]">User</th>
+                  <th className="px-4 py-3 min-w-[120px]">Book</th>
+                  <th className="px-4 py-3 hidden sm:table-cell">Price</th>
+                  <th className="px-4 py-3">Fine</th>
+                  <th className="px-4 py-3 hidden md:table-cell">Dates</th>
+                  <th className="px-4 py-3 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -289,35 +275,49 @@ const Catalog = () => {
                       key={book._id}
                       className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
                     >
-                      <td className="px-6 py-4 text-gray-800">
+                      <td className="px-4 py-3 text-gray-800 text-sm">
                         {indexOfFirstBook + index + 1}
                       </td>
-                      <td className="px-6 py-4 text-gray-800 font-medium">
-                        {book?.user?.name || "N/A"}
+                      <td className="px-4 py-3 text-sm">
+                        <div className="flex flex-col">
+                          <p className="font-medium text-gray-800">
+                            {book?.user?.name || "N/A"}
+                          </p>
+                          <p className="text-gray-600 text-xs mt-1">
+                            {book?.user?.email || "N/A"}
+                          </p>
+                        </div>
                       </td>
-                      <td className="px-6 py-4 text-gray-700">
-                        {book?.user?.email || "N/A"}
-                      </td>
-                      <td className="px-6 py-4 text-gray-700 font-medium">
+                      <td className="px-4 py-3 text-gray-700 font-medium text-sm">
                         {bookTitle || "N/A"}
                       </td>
-                      <td className="px-6 py-4 text-gray-700 hidden sm:table-cell">
+                      <td className="px-4 py-3 text-gray-700 hidden sm:table-cell text-sm">
                         $ {book.price || "N/A"}
                       </td>
-                      <td className="px-6 py-4 font-bold">
+                      <td className="px-4 py-3 font-bold text-sm">
                         {isOverdue && !book.returnDate ? (
                           <span className="text-red-600">${fine}</span>
                         ) : (
                           <span className="text-gray-500">$0.00</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-gray-700 hidden md:table-cell">
-                        {formatDate(book.dueDate)}
+                      <td className="px-4 py-3 hidden md:table-cell text-sm text-gray-700">
+                        <div className="flex flex-col">
+                          <p>
+                            <span className="font-semibold text-gray-800">
+                              Due:
+                            </span>{" "}
+                            {formatDate(book.dueDate)}
+                          </p>
+                          <p className="mt-1">
+                            <span className="font-semibold text-gray-800">
+                              On:
+                            </span>{" "}
+                            {formatDate(book.createdAt)}
+                          </p>
+                        </div>
                       </td>
-                      <td className="px-6 py-4 text-gray-700 hidden lg:table-cell">
-                        {formatDateAndTime(book.createdAt)}
-                      </td>
-                      <td className="px-6 py-4 flex gap-2 my-auto justify-center">
+                      <td className="px-4 py-3 flex gap-2 my-auto justify-center">
                         {book.returnDate ? (
                           <FaSquareCheck
                             className="w-6 h-6 text-green-600"

@@ -96,11 +96,33 @@ const BookDetails = () => {
   };
 
   if (isLoading) {
-    return <div className="text-center mt-20">Loading...</div>;
+    return (
+      <div className="flex flex-col min-h-screen">
+        {isAuthenticated && <Header />}
+        <main
+          className={`relative flex-1 p-6 ${
+            isAuthenticated ? "pt-16" : "pt-6"
+          } font-inter bg-gray-100`}
+        >
+          <div className="text-center mt-20 text-gray-700">Loading...</div>
+        </main>
+      </div>
+    );
   }
 
   if (!book) {
-    return <div className="text-center mt-20">Book not found.</div>;
+    return (
+      <div className="flex flex-col min-h-screen">
+        {isAuthenticated && <Header />}
+        <main
+          className={`relative flex-1 p-6 ${
+            isAuthenticated ? "pt-16" : "pt-6"
+          } font-inter bg-gray-100`}
+        >
+          <div className="text-center mt-20 text-gray-700">Book not found.</div>
+        </main>
+      </div>
+    );
   }
 
   return (
@@ -108,37 +130,41 @@ const BookDetails = () => {
       {isAuthenticated && <Header />}
       <main
         className={`relative flex-1 p-6 ${
-          isAuthenticated ? "pt-28" : "pt-6"
+          isAuthenticated ? "pt-16" : "pt-6"
         } font-inter bg-gray-100 min-h-screen`}
       >
-        <div className="mb-4">
+        <div className="mb-6">
           <button
             onClick={() => navigate(-1)}
-            className="px-4 py-2 bg-gray-300 rounded-lg"
+            className="px-4 py-2 bg-white text-gray-700 rounded-lg shadow hover:bg-gray-200 transition-colors"
           >
             &larr; Back
           </button>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
-          <h1 className="text-3xl font-bold">{book?.title}</h1>
-          <h2 className="text-xl text-gray-700 mb-2">by {book?.author}</h2>
-          <p className="text-gray-600">{book?.description}</p>
+        <div className="bg-white p-8 rounded-2xl shadow-xl mb-6">
+          <h1 className="text-4xl font-extrabold text-[#2C3E50]">
+            {book?.title}
+          </h1>
+          <h2 className="text-xl text-gray-600 font-semibold mb-4">
+            by {book?.author}
+          </h2>
+          <p className="text-gray-700 leading-relaxed">{book?.description}</p>
         </div>
 
-        {/* Corrected and simplified logic for buttons */}
+        {/* Action Buttons Section */}
         {isAuthenticated && user?.role === "User" && (
-          <div className="mt-4">
+          <div className="mt-4 flex items-center justify-between p-4 bg-white rounded-lg shadow-md">
             {book.quantity > 0 ? (
               user.kycStatus === "Verified" ? (
                 <button
                   onClick={handlePrebook}
-                  className="mt-4 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700"
+                  className="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition"
                 >
                   Pre-Book Now
                 </button>
               ) : (
-                <div className="p-3 bg-yellow-50 text-yellow-800 rounded-lg">
+                <div className="p-3 w-full border-l-4 border-yellow-500 bg-yellow-50 text-yellow-800 rounded-lg">
                   <p>
                     Your KYC must be verified to pre-book.
                     <Link to="/kyc" className="font-bold underline ml-2">
@@ -151,7 +177,7 @@ const BookDetails = () => {
               // Book is out of stock
               <button
                 onClick={handleNotifyMe}
-                className="mt-4 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700"
+                className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
               >
                 Notify Me When Available
               </button>
@@ -173,7 +199,7 @@ const BookDetails = () => {
               />
               <button
                 type="submit"
-                className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg"
+                className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
               >
                 Post Comment
               </button>
@@ -191,7 +217,7 @@ const BookDetails = () => {
                 </p>
                 <button
                   onClick={() => navigate("/login")}
-                  className="mt-2 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg"
+                  className="mt-2 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
                 >
                   Log In to Comment
                 </button>
@@ -203,7 +229,10 @@ const BookDetails = () => {
           <div className="space-y-4">
             {comments.length > 0 ? (
               comments.map((comment) => (
-                <div key={comment._id} className="border-b pb-2">
+                <div
+                  key={comment._id}
+                  className="border-b pb-4 last:border-b-0"
+                >
                   <div className="flex justify-between items-center">
                     <p className="font-bold">{comment.user.name}</p>
                     {user &&
@@ -211,7 +240,7 @@ const BookDetails = () => {
                         user._id === comment.user.id) && (
                         <button
                           onClick={() => handleDeleteComment(comment._id)}
-                          className="text-red-500 text-sm"
+                          className="text-red-500 text-sm hover:text-red-700 transition-colors"
                         >
                           Delete
                         </button>

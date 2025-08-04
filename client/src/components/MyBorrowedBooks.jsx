@@ -53,7 +53,7 @@ const MyBorrowedBooks = () => {
     ).padStart(2, "0")}-${date.getFullYear()}`;
     const formattedTime = `${String(date.getHours()).padStart(2, "0")}:${String(
       date.getMinutes()
-    ).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
+    ).padStart(2, "0")}`;
     return `${formattedDate} ${formattedTime}`;
   };
 
@@ -176,35 +176,33 @@ const MyBorrowedBooks = () => {
     <>
       <main className="relative flex-1 p-6 pt-28 font-inter bg-gray-100 min-h-screen">
         <Header />
-        <header className="flex flex-col gap-6 md:flex-row md:justify-between md:items-center mb-6">
-          <h2 className="text-3xl font-extrabold text-[#2C3E50]">
-            {filter === "returned" ? "Returned Books" : "Non-Returned Books"}
-          </h2>
-        </header>
-        <header className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
+        <h2 className="text-2xl font-extrabold text-[#2C3E50] mb-6">
+          {filter === "returned" ? "Returned Books" : "Non-Returned Books"}
+        </h2>
+        <div className="flex flex-col gap-4 sm:flex-row mb-6">
           <button
-            className={`py-3 px-6 rounded-lg font-bold transition duration-300 ease-in-out shadow-lg transform hover:scale-105 w-full sm:w-72
+            className={`py-3 px-6 rounded-lg font-semibold transition duration-300 ease-in-out w-full sm:w-auto text-sm
               ${
                 filter === "returned"
-                  ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
-                  : "bg-white text-blue-600 border-2 border-black shadow-md hover:bg-gray-100"
+                  ? "bg-blue-600 text-white shadow-lg"
+                  : "bg-white text-gray-700 border border-gray-300 shadow-md hover:bg-gray-100"
               }`}
             onClick={() => handleFilterChange("returned")}
           >
             Returned Books
           </button>
           <button
-            className={`py-3 px-6 rounded-lg font-bold transition duration-300 ease-in-out shadow-lg transform hover:scale-105 w-full sm:w-72
+            className={`py-3 px-6 rounded-lg font-semibold transition duration-300 ease-in-out w-full sm:w-auto text-sm
               ${
                 filter === "nonReturned"
-                  ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
-                  : "bg-white text-blue-600 border-2 border-black shadow-md hover:bg-gray-100"
+                  ? "bg-blue-600 text-white shadow-lg"
+                  : "bg-white text-gray-700 border border-gray-300 shadow-md hover:bg-gray-100"
               }`}
             onClick={() => handleFilterChange("nonReturned")}
           >
             Non-Returned Books
           </button>
-        </header>
+        </div>
         {loading ? (
           <p className="mt-5 text-center text-xl font-inter text-gray-700">
             Loading borrowed books...
@@ -213,17 +211,15 @@ const MyBorrowedBooks = () => {
           <div className="mt-6 overflow-x-auto bg-white rounded-2xl shadow-xl">
             <table className="min-w-full border-collapse">
               <thead>
-                <tr className="bg-blue-50 text-blue-800 font-semibold text-left">
-                  <th className="px-4 py-3 sm:px-6">ID</th>
-                  <th className="px-4 py-3 sm:px-6">Book Title</th>
-                  <th className="px-4 py-3 sm:px-6 hidden md:table-cell">
-                    Date and Time
+                <tr className="bg-blue-50 text-blue-800 font-semibold text-left text-sm">
+                  <th className="px-4 py-3">ID</th>
+                  <th className="px-4 py-3">Book Title</th>
+                  <th className="px-4 py-3 hidden md:table-cell">
+                    Borrowed Date
                   </th>
-                  <th className="px-4 py-3 sm:px-6 hidden lg:table-cell">
-                    Due Date
-                  </th>
-                  <th className="px-4 py-3 sm:px-6">Returned</th>
-                  <th className="px-4 py-3 sm:px-6 text-center">View</th>
+                  <th className="px-4 py-3 hidden lg:table-cell">Due Date</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3 text-center">View</th>
                 </tr>
               </thead>
               <tbody>
@@ -236,19 +232,19 @@ const MyBorrowedBooks = () => {
                       key={book.borrowId || index}
                       className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
                     >
-                      <td className="px-4 py-4 sm:px-6 text-gray-800">
+                      <td className="px-4 py-3 text-gray-800 text-sm">
                         {indexOfFirstBook + index + 1}
                       </td>
-                      <td className="px-4 py-4 sm:px-6 text-gray-800 font-medium">
+                      <td className="px-4 py-3 text-gray-800 font-medium text-sm">
                         {book.bookTitle}
                       </td>
-                      <td className="px-4 py-4 sm:px-6 text-gray-700 hidden md:table-cell">
+                      <td className="px-4 py-3 text-gray-700 text-sm hidden md:table-cell">
                         {formatDate(book.borrowedDate)}
                       </td>
-                      <td className="px-4 py-4 sm:px-6 text-gray-700 hidden lg:table-cell">
+                      <td className="px-4 py-3 text-gray-700 text-sm hidden lg:table-cell">
                         {formatDate(book.dueDate)}
                       </td>
-                      <td className="px-4 py-4 sm:px-6">
+                      <td className="px-4 py-3 text-sm">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${
                             book.returned
@@ -256,15 +252,15 @@ const MyBorrowedBooks = () => {
                               : "bg-red-100 text-red-800"
                           }`}
                         >
-                          {book.returned ? "Yes" : "No"}
+                          {book.returned ? "Returned" : "Non-Returned"}
                         </span>
                         {isOverdue && (
-                          <span className="text-red-600 font-bold ml-2">
+                          <span className="text-red-600 font-bold text-xs ml-2">
                             Fine: ${fine}
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-4 sm:px-6 flex justify-center">
+                      <td className="px-4 py-3 text-center">
                         <button
                           onClick={() => openReadPopup(book.bookId)}
                           aria-label={`View ${book.bookTitle}`}

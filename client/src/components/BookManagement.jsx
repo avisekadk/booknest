@@ -50,7 +50,7 @@ const BookManagement = () => {
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const [booksPerPage] = useState(15);
+  const [booksPerPage] = useState(10);
   // Sorting state
   const [sortOrder, setSortOrder] = useState("title_asc"); // Default sort
 
@@ -92,7 +92,7 @@ const BookManagement = () => {
 
   const handleSearch = (e) => {
     setSearchedKeyword(e.target.value.toLowerCase());
-    setCurrentPage(1); // Reset to first page on new search
+    setCurrentPage(1);
   };
 
   const filteredBooks = books.filter(
@@ -103,7 +103,7 @@ const BookManagement = () => {
 
   // Sorting logic using useMemo
   const sortedAndFilteredBooks = useMemo(() => {
-    let sorted = [...filteredBooks]; // Create a mutable copy
+    let sorted = [...filteredBooks];
     switch (sortOrder) {
       case "price_asc":
         sorted.sort((a, b) => a.price - b.price);
@@ -215,22 +215,44 @@ const BookManagement = () => {
       <main className="relative flex-1 p-6 pt-28 font-inter bg-gray-100 min-h-screen">
         <Header />
         <header className="flex flex-col gap-6 md:flex-row md:justify-between md:items-center mb-6">
-          <h2 className="text-3xl font-extrabold text-[#2C3E50]">
+          <h2 className="text-2xl font-extrabold text-[#2C3E50]">
             {user && user.role === "Admin" ? "Book Management" : "Books"}
           </h2>
           <div className="flex flex-col lg:flex-row gap-4">
             {isAuthenticated && user?.role === "Admin" && (
               <button
                 onClick={() => dispatch(toggleAddBookPopup())}
-                className="py-3 px-6 rounded-lg font-bold text-white
+                className="py-2 px-4 rounded-lg font-bold text-white
                            bg-gradient-to-r from-blue-500 to-blue-600
                            hover:from-blue-600 hover:to-blue-700 transition duration-300 ease-in-out
                            shadow-lg transform hover:scale-105 flex items-center justify-center gap-2"
               >
-                <span className="text-white text-3xl leading-none">+</span>
+                <span className="text-white text-2xl leading-none">+</span>
                 Add Book
               </button>
             )}
+
+            {/* --- Sort Controls moved here --- */}
+            <div className="flex items-center">
+              <label
+                htmlFor="sortOrder"
+                className="mr-2 font-semibold text-gray-700 whitespace-nowrap"
+              >
+                Sort by:
+              </label>
+              <select
+                id="sortOrder"
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+              >
+                <option value="title_asc">Title (A-Z)</option>
+                <option value="price_asc">Price (Low to High)</option>
+                <option value="price_desc">Price (High to Low)</option>
+                <option value="most_borrowed">Most Borrowed</option>
+              </select>
+            </div>
+            {/* --- Search Input moved to the right --- */}
             <input
               type="text"
               placeholder="Search books by title or author..."
@@ -241,48 +263,24 @@ const BookManagement = () => {
           </div>
         </header>
 
-        {/* --- New Sorting Controls --- */}
-        <div className="flex justify-end items-center mb-4">
-          <label
-            htmlFor="sortOrder"
-            className="mr-2 font-semibold text-gray-700"
-          >
-            Sort by:
-          </label>
-          <select
-            id="sortOrder"
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
-          >
-            <option value="title_asc">Title (A-Z)</option>
-            <option value="price_asc">Price (Low to High)</option>
-            <option value="price_desc">Price (High to Low)</option>
-            <option value="most_borrowed">Most Borrowed</option>
-          </select>
-        </div>
-        {/* --- End of New Sorting Controls --- */}
-
         {sortedAndFilteredBooks.length > 0 ? (
           currentBooks.length > 0 ? (
             <div className="mt-6 overflow-x-auto bg-white rounded-2xl shadow-xl">
               <table className="min-w-full border-collapse">
                 <thead>
-                  <tr className="bg-blue-50 text-blue-800 font-semibold text-left">
-                    <th className="px-4 py-3 sm:px-6">ID</th>
-                    <th className="px-4 py-3 sm:px-6">Name</th>
-                    <th className="px-4 py-3 sm:px-6">Author</th>
+                  <tr className="bg-blue-50 text-blue-800 text-sm font-semibold text-left">
+                    <th className="px-4 py-3">ID</th>
+                    <th className="px-4 py-3">Name</th>
+                    <th className="px-4 py-3">Author</th>
                     {isAuthenticated && user?.role === "Admin" && (
-                      <th className="px-4 py-3 sm:px-6 hidden sm:table-cell">
+                      <th className="px-4 py-3 hidden sm:table-cell">
                         Available
                       </th>
                     )}
-                    <th className="px-4 py-3 sm:px-6 hidden md:table-cell">
-                      Price
-                    </th>
-                    <th className="px-4 py-3 sm:px-6">Availability</th>
+                    <th className="px-4 py-3 hidden md:table-cell">Price</th>
+                    <th className="px-4 py-3">Availability</th>
                     {isAuthenticated && user?.role === "Admin" && (
-                      <th className="px-4 py-3 sm:px-6 text-center">Actions</th>
+                      <th className="px-4 py-3 text-center">Actions</th>
                     )}
                   </tr>
                 </thead>
@@ -292,10 +290,10 @@ const BookManagement = () => {
                       key={book._id}
                       className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
                     >
-                      <td className="px-4 py-4 sm:px-6 text-gray-800">
+                      <td className="px-4 py-3 text-gray-800 text-sm">
                         {indexOfFirstBook + index + 1}
                       </td>
-                      <td className="px-4 py-4 sm:px-6 text-gray-800 font-medium">
+                      <td className="px-4 py-3 text-gray-800 font-medium text-sm">
                         <Link
                           to={`/book/${book._id}`}
                           className="hover:underline text-blue-600"
@@ -303,18 +301,18 @@ const BookManagement = () => {
                           {book.title}
                         </Link>
                       </td>
-                      <td className="px-4 py-4 sm:px-6 text-gray-700">
+                      <td className="px-4 py-3 text-gray-700 text-sm">
                         {book.author}
                       </td>
                       {isAuthenticated && user?.role === "Admin" && (
-                        <td className="px-4 py-4 sm:px-6 text-gray-700 hidden sm:table-cell">
+                        <td className="px-4 py-3 text-gray-700 hidden sm:table-cell text-sm">
                           {book.quantity}
                         </td>
                       )}
-                      <td className="px-4 py-4 sm:px-6 text-gray-700 hidden md:table-cell">
+                      <td className="px-4 py-3 text-gray-700 hidden md:table-cell text-sm">
                         $ {book.price}
                       </td>
-                      <td className="px-4 py-4 sm:px-6">
+                      <td className="px-4 py-3">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${
                             book.availability
@@ -326,7 +324,7 @@ const BookManagement = () => {
                         </span>
                       </td>
                       {isAuthenticated && user?.role === "Admin" && (
-                        <td className="px-4 py-4 sm:px-6 flex gap-2 sm:gap-3 my-auto justify-center">
+                        <td className="px-4 py-3 flex gap-2 my-auto justify-center">
                           <button
                             onClick={() => openReadPopup(book._id)}
                             title="Read Book"

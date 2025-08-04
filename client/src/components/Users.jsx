@@ -8,7 +8,7 @@ const Users = () => {
 
   // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [usersPerPage] = useState(15); // Number of users to display per page
+  const [usersPerPage] = useState(10); // Changed from 15 to 10 users per page
 
   const formatDate = (timeStamp) => {
     if (!timeStamp) return "N/A";
@@ -135,7 +135,7 @@ const Users = () => {
     <main className="relative flex-1 p-6 pt-28 font-inter bg-gray-100 min-h-screen">
       <Header />
       <header className="flex flex-col gap-6 md:flex-row md:justify-between md:items-center mb-6">
-        <h2 className="text-3xl font-extrabold text-[#2C3E50]">
+        <h2 className="text-2xl font-extrabold text-[#2C3E50]">
           Registered Users
         </h2>
         <input
@@ -151,20 +151,13 @@ const Users = () => {
           <div className="mt-6 overflow-x-auto bg-white rounded-2xl shadow-xl">
             <table className="min-w-full border-collapse">
               <thead>
-                <tr className="bg-blue-50 text-blue-800 font-semibold text-left">
-                  <th className="px-4 py-3 sm:px-6">ID</th>
-                  <th className="px-4 py-3 sm:px-6">Name</th>
-                  <th className="px-4 py-3 sm:px-6">Email</th>
-                  <th className="px-4 py-3 sm:px-6 hidden sm:table-cell">
-                    Role
-                  </th>
-                  <th className="px-4 py-3 sm:px-6 text-center">
-                    Books Borrowed
-                  </th>
-                  <th className="px-4 py-3 sm:px-6 text-center">
-                    Books Returned
-                  </th>
-                  <th className="px-4 py-3 sm:px-6 hidden lg:table-cell text-center">
+                <tr className="bg-blue-50 text-blue-800 font-semibold text-left text-sm">
+                  <th className="px-4 py-3">ID</th>
+                  <th className="px-4 py-3 min-w-[150px]">User</th>
+                  <th className="px-4 py-3 hidden sm:table-cell">Role</th>
+                  <th className="px-4 py-3 text-center">Books Borrowed</th>
+                  <th className="px-4 py-3 text-center">Books Returned</th>
+                  <th className="px-4 py-3 hidden lg:table-cell text-center">
                     Created at
                   </th>
                 </tr>
@@ -181,25 +174,29 @@ const Users = () => {
                       key={user._id}
                       className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
                     >
-                      <td className="px-4 py-4 sm:px-6 text-gray-800">
+                      <td className="px-4 py-3 text-gray-800 text-sm">
                         {rowNumber}
                       </td>
-                      <td className="px-4 py-4 sm:px-6 text-gray-800 font-medium">
-                        {user.name}
+                      <td className="px-4 py-3 text-sm">
+                        <div className="flex flex-col">
+                          <p className="font-medium text-gray-800">
+                            {user.name}
+                          </p>
+                          <p className="text-gray-600 text-xs mt-1">
+                            {user.email}
+                          </p>
+                        </div>
                       </td>
-                      <td className="px-4 py-4 sm:px-6 text-gray-700">
-                        {user.email}
-                      </td>
-                      <td className="px-4 py-4 sm:px-6 text-gray-700 hidden sm:table-cell">
+                      <td className="px-4 py-3 text-gray-700 hidden sm:table-cell text-sm">
                         {user.role}
                       </td>
-                      <td className="px-4 py-4 sm:px-6 text-center text-gray-700">
+                      <td className="px-4 py-3 text-center text-gray-700 text-sm">
                         {user?.borrowedBooks?.length || 0}
                       </td>
-                      <td className="px-4 py-4 sm:px-6 text-center text-gray-700">
+                      <td className="px-4 py-3 text-center text-gray-700 text-sm">
                         {returnedBooksCount}
                       </td>
-                      <td className="px-4 py-4 sm:px-6 hidden lg:table-cell text-center text-gray-700">
+                      <td className="px-4 py-3 hidden lg:table-cell text-center text-gray-700 text-sm">
                         {formatDate(user.createdAt)}
                       </td>
                     </tr>

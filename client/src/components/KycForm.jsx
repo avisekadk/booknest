@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { ShieldCheck, ShieldAlert, Clock, Upload } from "lucide-react";
+import Header from "../layout/Header";
 
 const KycForm = () => {
   const { user } = useSelector((state) => state.auth);
@@ -51,6 +52,10 @@ const KycForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!documentImage) {
+      toast.error("Please upload a document image.");
+      return;
+    }
     const submissionData = new FormData();
     Object.keys(formData).forEach((key) =>
       submissionData.append(key, formData[key])
@@ -82,148 +87,250 @@ const KycForm = () => {
   };
 
   if (isLoading) {
-    return <div className="text-center p-10">Loading KYC Status...</div>;
+    return (
+      <main className="relative flex-1 p-6 pt-28 font-inter bg-gray-100 min-h-screen">
+        <Header />
+        <div className="text-center p-10 font-inter text-lg text-gray-700">
+          Loading KYC Status...
+        </div>
+      </main>
+    );
   }
 
   if (kycData?.status === "Verified") {
     return (
-      <div className="bg-white p-8 rounded-lg shadow-lg text-center">
-        <ShieldCheck className="mx-auto h-16 w-16 text-green-500" />
-        <h2 className="text-2xl font-bold mt-4">KYC Verified</h2>
-        <p className="text-gray-600 mt-2">
-          Your account is fully verified. You can now access all features,
-          including pre-booking.
-        </p>
-      </div>
+      <main className="relative flex-1 p-6 pt-28 font-inter bg-gray-100 min-h-screen flex justify-center items-center">
+        <Header />
+        <div className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md w-full">
+          <div className="p-4 rounded-full bg-green-100 inline-block">
+            <ShieldCheck className="h-12 w-12 text-green-600" />
+          </div>
+          <h2 className="text-2xl font-bold mt-4 text-[#2C3E50]">
+            KYC Verified
+          </h2>
+          <p className="text-gray-600 mt-2">
+            Your account is fully verified. You can now access all features,
+            including pre-booking.
+          </p>
+        </div>
+      </main>
     );
   }
 
   if (kycData?.status === "Pending") {
     return (
-      <div className="bg-white p-8 rounded-lg shadow-lg text-center">
-        <Clock className="mx-auto h-16 w-16 text-yellow-500" />
-        <h2 className="text-2xl font-bold mt-4">KYC Pending Approval</h2>
-        <p className="text-gray-600 mt-2">
-          Your submission is under review. We will notify you once it's
-          processed.
-        </p>
-      </div>
+      <main className="relative flex-1 p-6 pt-28 font-inter bg-gray-100 min-h-screen flex justify-center items-center">
+        <Header />
+        <div className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md w-full">
+          <div className="p-4 rounded-full bg-yellow-100 inline-block">
+            <Clock className="h-12 w-12 text-yellow-600" />
+          </div>
+          <h2 className="text-2xl font-bold mt-4 text-[#2C3E50]">
+            KYC Pending Approval
+          </h2>
+          <p className="text-gray-600 mt-2">
+            Your submission is under review. We will notify you once it's
+            processed.
+          </p>
+        </div>
+      </main>
     );
   }
 
   if (kycData?.status === "Rejected") {
     return (
-      <div className="bg-white p-8 rounded-lg shadow-lg text-center">
-        <ShieldAlert className="mx-auto h-16 w-16 text-red-500" />
-        <h2 className="text-2xl font-bold mt-4">KYC Rejected</h2>
-        <p className="text-gray-600 mt-2">
-          Reason: {kycData.details?.rejectionReason || "Not provided"}
-        </p>
-        <p className="text-gray-600 mt-2">
-          Please contact support for more information.
-        </p>
-      </div>
+      <main className="relative flex-1 p-6 pt-28 font-inter bg-gray-100 min-h-screen flex justify-center items-center">
+        <Header />
+        <div className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md w-full">
+          <div className="p-4 rounded-full bg-red-100 inline-block">
+            <ShieldAlert className="h-12 w-12 text-red-600" />
+          </div>
+          <h2 className="text-2xl font-bold mt-4 text-[#2C3E50]">
+            KYC Rejected
+          </h2>
+          <p className="text-gray-600 mt-2">
+            Your verification was rejected. Please review the reason below and
+            resubmit the form.
+          </p>
+          <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+            <p className="text-sm font-semibold text-gray-800">
+              Reason for Rejection:
+            </p>
+            <p className="text-sm text-red-500 mt-1">
+              {kycData.details?.rejectionReason || "Not provided"}
+            </p>
+          </div>
+        </div>
+      </main>
     );
   }
 
   return (
-    <div className="bg-white p-8 rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold mb-6">KYC Verification</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input
-            type="text"
-            name="firstName"
-            placeholder="First Name*"
-            onChange={handleInputChange}
-            required
-            className="w-full p-2 border rounded"
-          />
-          <input
-            type="text"
-            name="lastName"
-            placeholder="Last Name*"
-            onChange={handleInputChange}
-            required
-            className="w-full p-2 border rounded"
-          />
-        </div>
-        <input
-          type="text"
-          name="middleName"
-          placeholder="Middle Name (Optional)"
-          onChange={handleInputChange}
-          className="w-full p-2 border rounded"
-        />
-        <input
-          type="email"
-          value={user.email}
-          disabled
-          className="w-full p-2 border rounded bg-gray-100"
-        />
-        <input
-          type="tel"
-          name="phone"
-          placeholder="Phone Number*"
-          onChange={handleInputChange}
-          required
-          className="w-full p-2 border rounded"
-        />
-        <select
-          name="documentType"
-          onChange={handleInputChange}
-          className="w-full p-2 border rounded"
-        >
-          <option>Citizenship</option>
-          <option>License</option>
-          <option>National ID Card</option>
-          <option>Passport</option>
-        </select>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Upload Document*
-          </label>
-          <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-            <div className="space-y-1 text-center">
-              {preview ? (
-                <img
-                  src={preview}
-                  alt="Preview"
-                  className="mx-auto h-24 w-auto"
-                />
-              ) : (
-                <Upload className="mx-auto h-12 w-12 text-gray-400" />
-              )}
-              <div className="flex text-sm text-gray-600">
-                <label
-                  htmlFor="file-upload"
-                  className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none"
-                >
-                  <span>Upload a file</span>
-                  <input
-                    id="file-upload"
-                    name="documentImage"
-                    type="file"
-                    className="sr-only"
-                    onChange={handleFileChange}
-                    required
-                  />
-                </label>
-                <p className="pl-1">or drag and drop</p>
-              </div>
-              <p className="text-xs text-gray-500">PNG, JPG, WEBP up to 10MB</p>
+    <main className="relative flex-1 p-6 pt-28 font-inter bg-gray-100 min-h-screen">
+      <Header />
+      <div className="bg-white p-8 rounded-2xl shadow-xl max-w-3xl mx-auto">
+        <h2 className="text-2xl font-extrabold text-[#2C3E50] mb-2">
+          KYC Verification
+        </h2>
+        <p className="text-gray-600 mb-6">
+          Please fill out the form below to verify your identity and unlock all
+          features.
+        </p>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label
+                htmlFor="firstName"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                First Name*
+              </label>
+              <input
+                type="text"
+                id="firstName"
+                name="firstName"
+                placeholder="First Name"
+                onChange={handleInputChange}
+                required
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="lastName"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Last Name*
+              </label>
+              <input
+                type="text"
+                id="lastName"
+                name="lastName"
+                placeholder="Last Name"
+                onChange={handleInputChange}
+                required
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+              />
             </div>
           </div>
-        </div>
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 disabled:bg-blue-300"
-        >
-          {isLoading ? "Submitting..." : "Submit for Verification"}
-        </button>
-      </form>
-    </div>
+          <div>
+            <label
+              htmlFor="middleName"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Middle Name (Optional)
+            </label>
+            <input
+              type="text"
+              id="middleName"
+              name="middleName"
+              placeholder="Middle Name"
+              onChange={handleInputChange}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              value={user?.email || ""}
+              disabled
+              className="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="phone"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Phone Number*
+            </label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              placeholder="Phone Number"
+              onChange={handleInputChange}
+              required
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="documentType"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Document Type
+            </label>
+            <select
+              id="documentType"
+              name="documentType"
+              onChange={handleInputChange}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 bg-white"
+            >
+              <option>Citizenship</option>
+              <option>License</option>
+              <option>National ID Card</option>
+              <option>Passport</option>
+            </select>
+          </div>
+          <div>
+            <label
+              htmlFor="file-upload"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Upload Document*
+            </label>
+            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-blue-500 transition duration-200">
+              <div className="space-y-1 text-center">
+                {preview ? (
+                  <img
+                    src={preview}
+                    alt="Preview"
+                    className="mx-auto h-24 w-auto rounded-md shadow-sm"
+                  />
+                ) : (
+                  <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                )}
+                <div className="flex text-sm text-gray-600">
+                  <label
+                    htmlFor="file-upload"
+                    className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none"
+                  >
+                    <span>Upload a file</span>
+                    <input
+                      id="file-upload"
+                      name="documentImage"
+                      type="file"
+                      className="sr-only"
+                      onChange={handleFileChange}
+                      required
+                    />
+                  </label>
+                  <p className="pl-1">or drag and drop</p>
+                </div>
+                <p className="text-xs text-gray-500">
+                  PNG, JPG, WEBP up to 10MB
+                </p>
+              </div>
+            </div>
+          </div>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition disabled:bg-blue-300 disabled:cursor-not-allowed"
+          >
+            {isLoading ? "Submitting..." : "Submit for Verification"}
+          </button>
+        </form>
+      </div>
+    </main>
   );
 };
 

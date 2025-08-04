@@ -1,3 +1,5 @@
+// client/src/App.jsx
+
 import React, { useEffect } from "react";
 import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
@@ -17,7 +19,6 @@ import { getUser } from "./store/slices/authSlice";
 import { fetchAllUsers } from "./store/slices/userSlice";
 import { fetchAllBooks } from "./store/slices/bookSlice";
 import { fetchUserBorrowedBooks } from "./store/slices/borrowSlice";
-import { fetchMyPrebookings } from "./store/slices/prebookSlice"; // Import the new action
 import "react-toastify/dist/ReactToastify.css";
 
 // Import the new popups to render them at the top level
@@ -38,7 +39,6 @@ const App = () => {
       dispatch(fetchAllBooks());
       if (user.role === "User") {
         dispatch(fetchUserBorrowedBooks());
-        dispatch(fetchMyPrebookings()); // Fetch pre-bookings
       }
       if (user.role === "Admin") {
         dispatch(fetchAllUsers());
