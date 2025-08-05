@@ -89,17 +89,14 @@ const ScannerPopup = () => {
     });
   };
 
-  // Add this new handler function
   const handleRecordPrebooking = (bookId, userEmail) => {
     if (!bookId || !userEmail) {
       toast.error("Missing book or user information to record the borrow.");
       return;
     }
-    // Dispatch the existing action to record the borrow
     dispatch(recordBorrowBook(userEmail, bookId))
       .unwrap()
       .then(() => {
-        // Refresh the user data after recording the borrow
         resetScanner();
         toast.success("Book borrow recorded successfully!");
       })
@@ -124,7 +121,6 @@ const ScannerPopup = () => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 font-inter">
       <div className="w-full bg-white rounded-2xl shadow-2xl max-w-2xl mx-auto overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Header Bar */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50">
           <h3 className="text-2xl font-extrabold text-[#2C3E50] mx-auto">
             Scan User QR Code
@@ -137,7 +133,6 @@ const ScannerPopup = () => {
           </button>
         </div>
 
-        {/* Main Content Area */}
         <div className="p-8 space-y-8 flex-1 overflow-y-auto">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center h-64">
@@ -170,7 +165,6 @@ const ScannerPopup = () => {
               </div>
 
               <div className="flex flex-col md:flex-row gap-6">
-                {/* Left Column: Pre-Booked & Borrowed */}
                 <div className="flex-1 space-y-6">
                   <div>
                     <h5 className="font-bold text-lg text-blue-700 mb-3">
@@ -186,7 +180,6 @@ const ScannerPopup = () => {
                             <span className="font-semibold text-gray-800">
                               {prebook.bookId?.title || "Unknown Book"}
                             </span>
-                            {/* Add this button */}
                             <button
                               onClick={() =>
                                 handleRecordPrebooking(
@@ -231,7 +224,6 @@ const ScannerPopup = () => {
                                   {book.book?.title || "Unknown Book"}
                                 </span>
                                 {isOverdue && (
-                                  // Change 1
                                   <span className="ml-4 text-red-600 font-bold">
                                     Fine: Nrs. {fine}
                                   </span>
@@ -255,7 +247,6 @@ const ScannerPopup = () => {
                   </div>
                 </div>
 
-                {/* Right Column: Returned Books */}
                 <div className="flex-1">
                   <h5 className="font-bold text-lg text-green-700 mb-3">
                     Returned Books (History)
@@ -272,7 +263,6 @@ const ScannerPopup = () => {
                               {book.book?.title || "Unknown Book"}
                             </span>
                             {book.fine > 0 && (
-                              // Change 2
                               <span className="ml-4 text-gray-600 font-bold">
                                 Fine Paid: Nrs. {book.fine.toFixed(2)}
                               </span>
@@ -296,7 +286,6 @@ const ScannerPopup = () => {
           )}
         </div>
 
-        {/* Footer Bar */}
         <div className="flex justify-end gap-4 p-6 border-t border-gray-200">
           <button
             onClick={() => dispatch(toggleScannerPopup())}

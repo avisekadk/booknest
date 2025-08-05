@@ -11,8 +11,8 @@ const popupSlice = createSlice({
     addNewAdminPopup: false,
     editBookPopup: false,
     deleteBookPopup: false,
-    qrCodePopup: false, // For user's QR code
-    scannerPopup: false, // For admin's scanner
+    qrCodePopup: false,
+    scannerPopup: false,
   },
   reducers: {
     toggleSettingPopup(state) {

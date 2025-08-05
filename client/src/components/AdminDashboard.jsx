@@ -78,9 +78,7 @@ const AdminDashboard = () => {
     <main className="relative flex-1 pt-28 font-inter bg-gray-100 min-h-screen">
       <Header />
       <div className="flex flex-col xl:flex-row gap-6 p-6">
-        {/* Left: Chart + Stats */}
         <div className="flex-[2] flex flex-col gap-6 py-4">
-          {/* Chart Container */}
           <div className="bg-white rounded-2xl shadow-xl p-6 min-h-[300px] flex flex-col justify-center items-center">
             <h3 className="text-xl font-semibold text-[#2C3E50] mb-4">
               Book Borrowing Overview
@@ -98,11 +96,9 @@ const AdminDashboard = () => {
             )}
           </div>
         </div>
-        {/* Right: Summary Cards + Admin Info */}
         <div className="flex-[4] flex flex-col gap-6 py-4">
           <div className="flex flex-col-reverse lg:flex-row gap-6">
             <div className="flex flex-col gap-6 flex-1">
-              {/* Users Card */}
               <div className="flex items-center bg-white p-6 rounded-2xl shadow-xl transition duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-2xl cursor-pointer">
                 <div className="bg-blue-100 p-4 rounded-xl flex items-center justify-center shadow-md">
                   <img src={usersIcon} alt="users" className="w-7 h-7" />
@@ -116,7 +112,6 @@ const AdminDashboard = () => {
                   </span>
                 </div>
               </div>
-              {/* Books Card */}
               <div className="flex items-center bg-white p-6 rounded-2xl shadow-xl transition duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-2xl cursor-pointer">
                 <div className="bg-blue-100 p-4 rounded-xl flex items-center justify-center shadow-md">
                   <img src={bookIcon} alt="books" className="w-7 h-7" />
@@ -130,7 +125,6 @@ const AdminDashboard = () => {
                   </span>
                 </div>
               </div>
-              {/* Admins Card */}
               <div className="flex items-center bg-white p-6 rounded-2xl shadow-xl transition duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-2xl cursor-pointer">
                 <div className="bg-blue-100 p-4 rounded-xl flex items-center justify-center shadow-md">
                   <img src={adminIcon} alt="admins" className="w-7 h-7" />
@@ -145,7 +139,6 @@ const AdminDashboard = () => {
                 </div>
               </div>
             </div>
-            {/* Admin Profile Card */}
             <div className="bg-white p-6 rounded-2xl shadow-xl flex flex-col items-center justify-center flex-1 text-center">
               <img
                 src={

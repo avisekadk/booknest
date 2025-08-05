@@ -10,9 +10,8 @@ const PrebookingManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const dispatch = useDispatch();
 
-  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10); // Display 10 pre-bookings per page
+  const [itemsPerPage] = useState(10);
 
   const fetchPrebookings = async () => {
     try {
@@ -38,16 +37,13 @@ const PrebookingManagement = () => {
       toast.error("Missing book or user information to record the borrow.");
       return;
     }
-    // Dispatch the existing action to record the borrow
     await dispatch(recordBorrowBook(userEmail, bookId));
-    // After dispatching, refresh the list of pre-bookings
     fetchPrebookings();
   };
 
   const formatDate = (timeStamp) => {
     if (!timeStamp) return "N/A";
     const date = new Date(timeStamp);
-    // Format as DD-MM-YYYY HH:MM
     return `${String(date.getDate()).padStart(2, "0")}-${String(
       date.getMonth() + 1
     ).padStart(2, "0")}-${date.getFullYear()} ${String(
@@ -55,7 +51,6 @@ const PrebookingManagement = () => {
     ).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
   };
 
-  // Pagination Logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = prebookings.slice(indexOfFirstItem, indexOfLastItem);
@@ -156,7 +151,6 @@ const PrebookingManagement = () => {
                 </tr>
               </thead>
               <tbody>
-                {/* Filter out items with null bookId or userId before mapping */}
                 {currentItems
                   .filter((item) => item.bookId && item.userId)
                   .map((item, index) => (
@@ -199,7 +193,6 @@ const PrebookingManagement = () => {
                             )
                           }
                           className="px-3 py-1.5 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition text-sm"
-                          // Disable button if book is deleted
                           disabled={!item.bookId}
                         >
                           Record Borrow
@@ -210,7 +203,6 @@ const PrebookingManagement = () => {
               </tbody>
             </table>
           </div>
-          {/* Pagination Controls */}
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8">
             <div className="text-gray-700 text-lg font-semibold">
               Results: {Math.min(indexOfFirstItem + 1, prebookings.length)} -{" "}

@@ -7,7 +7,7 @@ import {
   toggleScannerPopup,
 } from "../store/slices/popUpSlice";
 import settingIcon from "../assets/setting.png";
-import userIcon from "../assets/user.png"; // [cite: 492]
+import userIcon from "../assets/user.png";
 
 const Header = () => {
   const dispatch = useDispatch();
@@ -16,11 +16,9 @@ const Header = () => {
   const [currentDate, setCurrentDate] = useState("");
 
   const handleUserIconClick = () => {
-    // For a user, toggle the QR code popup
     if (user?.role === "User") {
       dispatch(toggleQrCodePopup());
     }
-    // For an admin, this click could open a profile menu or do nothing
   };
 
   useEffect(() => {
@@ -45,7 +43,6 @@ const Header = () => {
   return (
     <>
       <header className="absolute top-0 w-full py-4 px-6 left-0 shadow-xl flex justify-between items-center bg-gradient-to-r from-blue-500 to-blue-700 font-inter text-white">
-        {/* left side - User Info */}
         <div className="flex items-center gap-3">
           <img
             src={userIcon}
@@ -62,7 +59,6 @@ const Header = () => {
             </span>
           </div>
         </div>
-        {/* right side - Date/Time and Settings */}
         <div className="hidden md:flex items-center gap-4">
           <div className="flex flex-col text-right text-base font-semibold">
             <span>{currentTime}</span>
@@ -70,7 +66,6 @@ const Header = () => {
           </div>
           <span className="bg-white h-10 w-[2px] opacity-70 rounded-full"></span>
 
-          {/* Scanner Icon for Admins */}
           {user?.role === "Admin" && (
             <ScanLine
               className="w-8 h-8 cursor-pointer transform hover:scale-110 transition duration-200"

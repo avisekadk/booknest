@@ -76,7 +76,7 @@ const BookDetails = () => {
         { withCredentials: true }
       );
       toast.success(data.message);
-      fetchBookAndComments(); // Refresh book details to show updated quantity
+      fetchBookAndComments();
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to pre-book.");
     }
@@ -152,7 +152,6 @@ const BookDetails = () => {
           <p className="text-gray-700 leading-relaxed">{book?.description}</p>
         </div>
 
-        {/* Action Buttons Section */}
         {isAuthenticated && user?.role === "User" && (
           <div className="mt-4 flex items-center justify-between p-4 bg-white rounded-lg shadow-md">
             {book.quantity > 0 ? (
@@ -174,7 +173,6 @@ const BookDetails = () => {
                 </div>
               )
             ) : (
-              // Book is out of stock
               <button
                 onClick={handleNotifyMe}
                 className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
@@ -185,7 +183,6 @@ const BookDetails = () => {
           </div>
         )}
 
-        {/* Comments Section */}
         <div className="bg-white p-6 rounded-lg shadow-lg mt-6">
           <h3 className="text-2xl font-bold mb-4">Discussion</h3>
           {isAuthenticated ? (
@@ -225,7 +222,6 @@ const BookDetails = () => {
             </div>
           )}
 
-          {/* Display Comments */}
           <div className="space-y-4">
             {comments.length > 0 ? (
               comments.map((comment) => (

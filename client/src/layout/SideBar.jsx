@@ -43,7 +43,6 @@ const SideBar = ({ isSideBarOpen, setIsSideBarOpen, setSelectedComponent }) => {
     }
   }, [dispatch, isAuthenticated, error, message]);
 
-  // Reusable component for navigation buttons
   const NavButton = ({ icon, label, component }) => (
     <button
       className="w-full py-2 px-3 bg-transparent rounded-lg hover:bg-blue-600 hover:text-white transition duration-200 flex items-center gap-3 text-xs"
@@ -82,7 +81,6 @@ const SideBar = ({ isSideBarOpen, setIsSideBarOpen, setSelectedComponent }) => {
             component="Books"
           />
 
-          {/* Admin-only navigation items */}
           {isAuthenticated && user?.role === "Admin" && (
             <>
               <NavButton
@@ -129,7 +127,6 @@ const SideBar = ({ isSideBarOpen, setIsSideBarOpen, setSelectedComponent }) => {
             </>
           )}
 
-          {/* User-only navigation items */}
           {isAuthenticated && user?.role === "User" && (
             <>
               <NavButton

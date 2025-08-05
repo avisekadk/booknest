@@ -17,7 +17,6 @@ const RecordBookPopup = ({ bookId }) => {
     const fetchPrebookingUsers = async () => {
       if (bookId) {
         try {
-          // This endpoint needs to be created on the backend
           const { data } = await axios.get(
             `http://localhost:4000/api/v1/prebook/users/${bookId}`,
             {

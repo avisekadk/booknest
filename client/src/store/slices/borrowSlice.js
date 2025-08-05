@@ -1,6 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
-// FIX: Import the action to re-fetch the book list from the bookSlice
 import { fetchAllBooks } from "./bookSlice";
 
 const borrowSlice = createSlice({
@@ -123,7 +122,6 @@ export const fetchAllBorrowedBooks = () => async (dispatch) => {
     }
 };
 
-// --- FIX: Modified this entire function ---
 export const recordBorrowBook = (email, id) => async (dispatch) => {
     dispatch(borrowSlice.actions.recordBookRequest());
     try {
@@ -135,16 +133,13 @@ export const recordBorrowBook = (email, id) => async (dispatch) => {
                 },
             }
         );
-        // Dispatch success message for borrow action
         dispatch(borrowSlice.actions.recordBookSuccess(res.data.message));
 
-        // After a successful borrow, immediately re-fetch the book and borrow lists
         dispatch(fetchAllBooks());
         dispatch(fetchAllBorrowedBooks());
     } catch (err) {
         const errorMessage = err.response?.data?.message || err.message;
         dispatch(borrowSlice.actions.recordBookFailed(errorMessage));
-        // Re-throw the error so component-level catch blocks can handle it (e.g., for toasts)
         throw new Error(errorMessage);
     }
 };

@@ -35,7 +35,6 @@ const OTP = () => {
   return (
     <>
       <div className="flex flex-col md:flex-row h-screen bg-gray-100">
-        {/* LEFT SIDE */}
         <div className="w-full md:w-1/2 flex items-center justify-center bg-white p-10 md:p-16 relative h-full">
           <Link
             to={"/register"}
@@ -73,7 +72,6 @@ const OTP = () => {
           </div>
         </div>
 
-        {/* RIGHT SIDE */}
         <div className="hidden md:flex w-full md:w-1/2 bg-gradient-to-br from-blue-500 to-blue-600 text-white items-center justify-center p-10 rounded-tl-[80px] rounded-bl-[80px] shadow-xl h-full">
           <div className="text-center max-w-md">
             <div className="mb-6">

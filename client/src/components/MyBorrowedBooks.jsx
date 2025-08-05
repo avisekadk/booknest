@@ -18,23 +18,19 @@ const MyBorrowedBooks = () => {
   const [readBook, setReadBook] = useState(null);
   const [filter, setFilter] = useState("returned");
 
-  // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [booksPerPage] = useState(10); // Number of books to display per page
+  const [booksPerPage] = useState(10);
 
-  // Fetch borrowed books on mount and when 'message' changes
   useEffect(() => {
     dispatch(fetchAllBorrowedBooks());
   }, [dispatch, message]);
 
-  // Open popup only if readBook is set and popup is currently closed
   useEffect(() => {
     if (readBook && !readBookPopup) {
       dispatch(toggleReadBookPopup());
     }
   }, [readBook, readBookPopup, dispatch]);
 
-  // Function to open popup and set the book to read
   const openReadPopup = (id) => {
     const bookToRead = books.find((book) => book._id === id);
     if (!bookToRead) {
@@ -44,7 +40,6 @@ const MyBorrowedBooks = () => {
     setReadBook(bookToRead);
   };
 
-  // Format timestamp to readable string
   const formatDate = (timeStamp) => {
     if (!timeStamp) return "N/A";
     const date = new Date(timeStamp);
@@ -68,19 +63,16 @@ const MyBorrowedBooks = () => {
     return "0.00";
   };
 
-  // Filter and sort books based on the 'returned' state and most recent borrow date
   const filteredBooks = useMemo(() => {
     const booksToSort = (userBorrowedBooks || []).filter((book) =>
       filter === "returned" ? book.returned : !book.returned
     );
-    // Sort by most recent borrow date on top
     booksToSort.sort(
       (a, b) => new Date(b.borrowedDate) - new Date(a.borrowedDate)
     );
     return booksToSort;
   }, [userBorrowedBooks, filter]);
 
-  // Pagination logic
   const indexOfLastBook = currentPage * booksPerPage;
   const indexOfFirstBook = indexOfLastBook - booksPerPage;
   const currentBooks = filteredBooks.slice(indexOfFirstBook, indexOfLastBook);
@@ -94,16 +86,14 @@ const MyBorrowedBooks = () => {
 
   const handleFilterChange = (newFilter) => {
     setFilter(newFilter);
-    setCurrentPage(1); // Reset to the first page when the filter changes
+    setCurrentPage(1);
   };
 
-  // Close popup handler: toggle popup and clear selected book
   const closeReadPopup = () => {
     dispatch(toggleReadBookPopup());
     setReadBook(null);
   };
 
-  // Pagination style logic
   const renderPageNumbers = () => {
     const pageNumbers = [];
     const maxPageButtons = 3;
@@ -283,7 +273,6 @@ const MyBorrowedBooks = () => {
           </h3>
         )}
 
-        {/* Pagination Controls */}
         {filteredBooks.length > 0 && (
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8">
             <div className="text-gray-700 text-lg font-semibold">
@@ -316,7 +305,6 @@ const MyBorrowedBooks = () => {
         )}
       </main>
 
-      {/* Render popup if open and book is selected */}
       {readBookPopup && readBook && (
         <ReadBookPopup book={readBook} onClose={closeReadPopup} />
       )}

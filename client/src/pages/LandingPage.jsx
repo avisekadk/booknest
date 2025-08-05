@@ -9,7 +9,7 @@ const LandingPage = () => {
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [booksPerPage] = useState(25); // Display 25 books per page
+  const [booksPerPage] = useState(25);
 
   useEffect(() => {
     const fetchPublicBooks = async () => {
@@ -28,7 +28,6 @@ const LandingPage = () => {
     fetchPublicBooks();
   }, []);
 
-  // Pagination Logic
   const indexOfLastBook = currentPage * booksPerPage;
   const indexOfFirstBook = indexOfLastBook - booksPerPage;
   const currentBooks = useMemo(() => {
@@ -109,7 +108,6 @@ const LandingPage = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen font-inter flex flex-col">
-      {/* Header */}
       <header className="bg-white shadow-md p-4 flex justify-between items-center sticky top-0 z-40">
         <div className="flex items-center">
           <img src={logo} alt="BookNest Logo" className="h-10 w-auto" />
@@ -123,7 +121,6 @@ const LandingPage = () => {
         </Link>
       </header>
 
-      {/* Main Content */}
       <main className="flex-1 p-6 md:p-10">
         <section className="text-center mb-12 py-10 bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl shadow-lg">
           <h1 className="text-4xl md:text-5xl font-extrabold text-gray-800 mb-4 leading-tight">
@@ -205,7 +202,6 @@ const LandingPage = () => {
         </section>
       </main>
 
-      {/* Footer */}
       <footer className="bg-gray-800 text-white mt-12 p-8 border-t border-gray-700">
         <div className="container mx-auto text-center">
           <h3 className="font-bold text-xl mb-3">Contact Us</h3>

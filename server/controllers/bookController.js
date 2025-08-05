@@ -2,12 +2,11 @@ import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
 import ErrorHandler from "../middlewares/errorMiddlewares.js";
 import { Book } from "../models/bookModel.js";
 import { Borrow } from "../models/borrowModel.js";
-import { Prebooking } from "../models/prebookingModel.js"; // Import Prebooking model
+import { Prebooking } from "../models/prebookingModel.js";
 import { User } from "../models/userModel.js";
 import { sendEmail } from "../utils/sendEmail.js";
-import { Notification } from "../models/notificationModel.js"; // Import Notification model
+import { Notification } from "../models/notificationModel.js";
 
-// --- PUBLIC CONTROLLERS ---
 export const getPublicBooks = catchAsyncErrors(async (req, res, next) => {
     const books = await Book.find().sort({ title: 1 });
     res.status(200).json({ success: true, books });
@@ -15,23 +14,20 @@ export const getPublicBooks = catchAsyncErrors(async (req, res, next) => {
 
 export const getSingleBook = catchAsyncErrors(async (req, res, next) => {
   const { id } = req.params;
-  const book = await Book.findById(id).lean(); // Use lean() for a plain object
+  const book = await Book.findById(id).lean();
   if (!book) {
     return next(new ErrorHandler("Book not found.", 404));
   }
-  
-  // Add prebooking count for the single book
+
   const prebookingCount = await Prebooking.countDocuments({ bookId: id });
   book.prebookingCount = prebookingCount;
 
   res.status(200).json({ success: true, book });
 });
 
-// --- AUTHENTICATED CONTROLLERS ---
 export const getAllBook = catchAsyncErrors(async (req, res, next) => {
   let books = await Book.find().lean();
-  
-  // Existing borrow count logic
+
   const borrowCounts = await Borrow.aggregate([
     { $group: { _id: "$book", count: { $sum: 1 } } },
   ]);
@@ -40,7 +36,6 @@ export const getAllBook = catchAsyncErrors(async (req, res, next) => {
     borrowCountMap.set(item._id.toString(), item.count);
   });
 
-  // ADD THIS: Pre-booking count logic
   const prebookingCounts = await Prebooking.aggregate([
     { $group: { _id: "$bookId", count: { $sum: 1 } } },
   ]);
@@ -49,11 +44,10 @@ export const getAllBook = catchAsyncErrors(async (req, res, next) => {
     prebookingCountMap.set(item._id.toString(), item.count);
   });
 
-  // Map both counts to the books array
   books = books.map((book) => ({
     ...book,
     borrowCount: borrowCountMap.get(book._id.toString()) || 0,
-    prebookingCount: prebookingCountMap.get(book._id.toString()) || 0, // Add prebookingCount
+    prebookingCount: prebookingCountMap.get(book._id.toString()) || 0,
   }));
 
   res.status(200).json({ success: true, books });
@@ -61,9 +55,31 @@ export const getAllBook = catchAsyncErrors(async (req, res, next) => {
 
 export const addBook = catchAsyncErrors(async (req, res, next) => {
     const { title, author, description, price, quantity, totalCopies } = req.body;
-    if (!title || !author || !description || !price || quantity === undefined || totalCopies === undefined) {
-        return next(new ErrorHandler("Please enter all fields.", 400));
+
+    if (!title || !author || !description || price === undefined || quantity === undefined || totalCopies === undefined) {
+        return next(new ErrorHandler("Please enter all required fields.", 400));
     }
+
+    if (title.trim() === "" || author.trim() === "" || description.trim() === "") {
+        return next(new ErrorHandler("Title, author, and description cannot be empty.", 400));
+    }
+
+    if (isNaN(price) || price < 0) {
+        return next(new ErrorHandler("Price must be a non-negative number.", 400));
+    }
+
+    if (isNaN(quantity) || !Number.isInteger(quantity) || quantity < 0) {
+        return next(new ErrorHandler("Quantity must be a non-negative integer.", 400));
+    }
+
+    if (isNaN(totalCopies) || !Number.isInteger(totalCopies) || totalCopies < 0) {
+        return next(new ErrorHandler("Total copies must be a non-negative integer.", 400));
+    }
+
+    if (quantity > totalCopies) {
+        return next(new ErrorHandler("Available quantity cannot exceed total copies.", 400));
+    }
+
     await Book.create({ title, author, description, price, quantity, totalCopies });
     res.status(201).json({
         success: true,
@@ -74,12 +90,27 @@ export const addBook = catchAsyncErrors(async (req, res, next) => {
 export const updateBook = catchAsyncErrors(async (req, res, next) => {
     const { id } = req.params;
     const { title, author, description, price } = req.body;
-    let book = await Book.findById(id);
-    if (!book) { return next(new ErrorHandler("Book not found.", 404)); }
 
-    book.title = title;
-    book.author = author;
-    book.description = description;
+    let book = await Book.findById(id);
+    if (!book) {
+        return next(new ErrorHandler("Book not found.", 404));
+    }
+
+    if (!title || !author || !description || price === undefined) {
+        return next(new ErrorHandler("Please enter all required fields for update.", 400));
+    }
+
+    if (title.trim() === "" || author.trim() === "" || description.trim() === "") {
+        return next(new ErrorHandler("Title, author, and description cannot be empty.", 400));
+    }
+
+    if (isNaN(price) || price < 0) {
+        return next(new ErrorHandler("Price must be a non-negative number.", 400));
+    }
+
+    book.title = title.trim();
+    book.author = author.trim();
+    book.description = description.trim();
     book.price = price;
 
     await book.save();
@@ -121,7 +152,6 @@ export const incrementBookQuantity = catchAsyncErrors(async (req, res, next) => 
                 subject: `BookNest: "${book.title}" is Available!`,
                 message,
             });
-            // Create a notification in the database
             await Notification.create({
                 userId: sub._id,
                 message: `The book "${book.title}" is now available!`,

@@ -1,5 +1,3 @@
-// server/controllers/borrowControllers.js
-
 import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
 import ErrorHandler from "../middlewares/errorMiddlewares.js";
 import { Borrow } from "../models/borrowModel.js";
@@ -27,17 +25,12 @@ export const recordBorrowBook = catchAsyncErrors(async (req, res, next) => {
         return next(new ErrorHandler("Book already borrowed", 400));
     }
 
-    // --- START OF FIX ---
-
-    // 1. First, check if the book is available. This is the only check needed.
     if (book.quantity <= 0) {
         return next(new ErrorHandler("Book not available.", 400));
     }
 
-    // 2. Decrement the quantity REGARDLESS of pre-booking status.
     book.quantity -= 1;
 
-    // 3. Find and delete the pre-booking record if it exists.
     const prebooking = await Prebooking.findOne({
         bookId: book._id,
         userId: user._id,
@@ -45,8 +38,6 @@ export const recordBorrowBook = catchAsyncErrors(async (req, res, next) => {
     if (prebooking) {
         await prebooking.deleteOne();
     }
-
-    // --- END OF FIX ---
 
     book.availability = book.quantity > 0;
     book.borrowCount += 1;
@@ -56,14 +47,14 @@ export const recordBorrowBook = catchAsyncErrors(async (req, res, next) => {
         bookId: book._id,
         bookTitle: book.title,
         borrowedDate: new Date(),
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
     await user.save();
 
     await Borrow.create({
         user: { id: user._id, name: user.name, email: user.email },
         book: book._id,
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         price: book.price,
     });
 

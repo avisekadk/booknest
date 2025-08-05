@@ -20,9 +20,6 @@ const SettingPopup = () => {
       return;
     }
 
-    // --- THIS IS THE FIX ---
-    // Instead of using FormData, we create a plain JavaScript object.
-    // Axios will automatically set the Content-Type to 'application/json'.
     const passwordData = {
       currentPassword,
       newPassword,

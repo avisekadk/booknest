@@ -2,13 +2,12 @@ import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import QRCode from "react-qr-code";
 import { toggleQrCodePopup } from "../store/slices/popUpSlice";
-import { X } from "lucide-react"; // Import the X icon for consistency
+import { X } from "lucide-react";
 
 const QRCodePopup = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
 
-  // Create a JSON string with user data for the QR code
   const qrCodeValue = JSON.stringify({
     userId: user?._id,
     name: user?.name,

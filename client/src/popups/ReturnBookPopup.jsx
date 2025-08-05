@@ -1,15 +1,13 @@
 import React from "react";
 import { useDispatch } from "react-redux";
 import { returnBook } from "../store/slices/borrowSlice";
-import { X } from "lucide-react"; // Import X icon for consistency
+import { X } from "lucide-react";
 
 const ReturnBookPopup = ({ bookId, userEmail, onClose }) => {
   const dispatch = useDispatch();
 
   const handleReturnBook = (e) => {
     e.preventDefault();
-    // console.log("ReturnBookPopup - returning book with id:", bookId); // Removed console.logs for cleaner code
-    // console.log("ReturnBookPopup - user email:", userEmail); // Removed console.logs for cleaner code
     dispatch(returnBook({ email: userEmail, id: bookId }));
     onClose();
   };

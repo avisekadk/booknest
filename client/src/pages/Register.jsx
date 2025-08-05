@@ -45,7 +45,6 @@ const Register = () => {
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-gray-100 ">
-      {/* LEFT SIDE */}
       <div className="hidden md:flex w-full md:w-1/2 bg-gradient-to-br from-blue-500 to-blue-700 text-white items-center justify-center p-10 rounded-tr-[80px] rounded-br-[80px] shadow-xl h-full">
         <div className="text-center max-w-md pt-16 sm:pt-24">
           <img
@@ -65,7 +64,6 @@ const Register = () => {
         </div>
       </div>
 
-      {/* RIGHT SIDE */}
       <div className="w-full md:w-1/2 flex items-center justify-center bg-white p-10 md:p-16 h-full">
         <div className="w-full max-w-md">
           <div className="flex justify-center mb-10">

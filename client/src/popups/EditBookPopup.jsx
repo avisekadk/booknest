@@ -65,7 +65,6 @@ const EditBookPopup = ({ book, onClose }) => {
         </h3>
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-            {/* Title spans both columns */}
             <div className="md:col-span-2">
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Book Title
@@ -79,7 +78,6 @@ const EditBookPopup = ({ book, onClose }) => {
               />
             </div>
 
-            {/* Left Column for Author, Price, and Quantity */}
             <div className="space-y-5">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">
@@ -133,13 +131,12 @@ const EditBookPopup = ({ book, onClose }) => {
               </div>
             </div>
 
-            {/* Right Column for Description */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Description
               </label>
               <textarea
-                rows={10} // Adjusted rows to better fit the new layout
+                rows={10}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none"

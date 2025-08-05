@@ -21,7 +21,7 @@ import ReadBookPopup from "../popups/ReadBookPopup";
 import RecordBookPopup from "../popups/RecordBookPopup";
 import EditBookPopup from "../popups/EditBookPopup";
 import DeleteBookConfirmation from "../popups/DeleteBookPopup";
-import { Link } from "react-router-dom"; // Import Link
+import { Link } from "react-router-dom";
 
 const BookManagement = () => {
   const dispatch = useDispatch();
@@ -48,16 +48,20 @@ const BookManagement = () => {
   const [deleteBookId, setDeleteBookId] = useState(null);
   const [deleteBookTitle, setDeleteBookTitle] = useState("");
 
-  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [booksPerPage] = useState(10);
-  // Sorting state
-  const [sortOrder, setSortOrder] = useState("title_asc"); // Default sort
+  const [sortOrder, setSortOrder] = useState("title_asc");
 
+  // *** CORRECTED useEffect HOOK ***
   useEffect(() => {
     dispatch(fetchAllBooks());
-    dispatch(fetchAllBorrowedBooks());
-  }, [dispatch, message]);
+
+    // This section is corrected to only fetch all borrowed books if the user is an admin.
+    // This prevents a standard user from making a request to an admin-only endpoint.
+    if (user && user.role === "Admin") {
+      dispatch(fetchAllBorrowedBooks());
+    }
+  }, [dispatch, message, user]); // Added `user` to the dependency array
 
   useEffect(() => {
     if (message || borrowSliceMessage) {
@@ -101,7 +105,6 @@ const BookManagement = () => {
       book.author.toLowerCase().includes(searchedKeyword)
   );
 
-  // Sorting logic using useMemo
   const sortedAndFilteredBooks = useMemo(() => {
     let sorted = [...filteredBooks];
     switch (sortOrder) {
@@ -122,7 +125,6 @@ const BookManagement = () => {
     return sorted;
   }, [filteredBooks, sortOrder]);
 
-  // Pagination calculations using the new sorted array
   const indexOfLastBook = currentPage * booksPerPage;
   const indexOfFirstBook = indexOfLastBook - booksPerPage;
   const currentBooks = sortedAndFilteredBooks.slice(
@@ -190,11 +192,11 @@ const BookManagement = () => {
           key={number}
           onClick={() => paginate(number)}
           className={`h-10 w-10 flex items-center justify-center rounded-lg font-semibold transition duration-200 ease-in-out border
-                      ${
-                        currentPage === number
-                          ? "bg-blue-600 text-white shadow-md border-blue-600"
-                          : "bg-white text-gray-700 hover:bg-gray-100 border-gray-300"
-                      }`}
+                      ${
+            currentPage === number
+              ? "bg-blue-600 text-white shadow-md border-blue-600"
+              : "bg-white text-gray-700 hover:bg-gray-100 border-gray-300"
+          }`}
         >
           {number}
         </button>
@@ -223,16 +225,15 @@ const BookManagement = () => {
               <button
                 onClick={() => dispatch(toggleAddBookPopup())}
                 className="py-2 px-4 rounded-lg font-bold text-white
-                           bg-gradient-to-r from-blue-500 to-blue-600
-                           hover:from-blue-600 hover:to-blue-700 transition duration-300 ease-in-out
-                           shadow-lg transform hover:scale-105 flex items-center justify-center gap-2"
+                           bg-gradient-to-r from-blue-500 to-blue-600
+                           hover:from-blue-600 hover:to-blue-700 transition duration-300 ease-in-out
+                           shadow-lg transform hover:scale-105 flex items-center justify-center gap-2"
               >
                 <span className="text-white text-2xl leading-none">+</span>
                 Add Book
               </button>
             )}
 
-            {/* --- Sort Controls moved here --- */}
             <div className="flex items-center">
               <label
                 htmlFor="sortOrder"
@@ -252,7 +253,6 @@ const BookManagement = () => {
                 <option value="most_borrowed">Most Borrowed</option>
               </select>
             </div>
-            {/* --- Search Input moved to the right --- */}
             <input
               type="text"
               placeholder="Search books by title or author..."
@@ -313,17 +313,16 @@ const BookManagement = () => {
                         Nrs. {book.price}
                       </td>
 
-                      {/* MODIFIED AVAILABILITY LOGIC */}
                       <td className="px-4 py-3">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${
                             book.quantity > 0 &&
                             book.prebookingCount < book.quantity
-                              ? "bg-green-100 text-green-800" // Available
+                              ? "bg-green-100 text-green-800"
                               : book.quantity > 0 &&
                                 book.prebookingCount >= book.quantity
-                              ? "bg-yellow-100 text-yellow-800" // Booked
-                              : "bg-red-100 text-red-800" // Unavailable
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-red-100 text-red-800"
                           }`}
                         >
                           {book.quantity > 0 &&
@@ -393,7 +392,6 @@ const BookManagement = () => {
           </h3>
         )}
 
-        {/* Pagination Controls */}
         {sortedAndFilteredBooks.length > 0 && (
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8">
             <div className="text-gray-700 text-lg font-semibold">
@@ -407,8 +405,8 @@ const BookManagement = () => {
                 onClick={() => paginate(currentPage - 1)}
                 disabled={currentPage === 1}
                 className="h-10 w-10 flex items-center justify-center rounded-lg bg-white text-gray-700 border border-gray-300 font-semibold shadow-sm
-                           hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed
-                           transition duration-200 ease-in-out"
+                           hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed
+                           transition duration-200 ease-in-out"
               >
                 &lt;
               </button>
@@ -417,8 +415,8 @@ const BookManagement = () => {
                 onClick={() => paginate(currentPage + 1)}
                 disabled={currentPage === totalPages}
                 className="h-10 w-10 flex items-center justify-center rounded-lg bg-white text-gray-700 border border-gray-300 font-semibold shadow-sm
-                           hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed
-                           transition duration-200 ease-in-out"
+                           hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed
+                           transition duration-200 ease-in-out"
               >
                 &gt;
               </button>
@@ -427,7 +425,6 @@ const BookManagement = () => {
         )}
       </main>
 
-      {/* Popups */}
       {addBookPopup && <AddBookPopup />}
       {readBookPopup && (
         <ReadBookPopup

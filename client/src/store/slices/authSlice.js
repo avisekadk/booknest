@@ -158,9 +158,7 @@ const authSlice = createSlice({
     },
 });
 
-export const resetAuthSlice = () => (dispatch) => {
-    dispatch(authSlice.actions.resetAuthSlice())
-}
+export const { resetAuthSlice } = authSlice.actions;
 
 
 export const register = (data) => async (dispatch) => {
@@ -216,14 +214,10 @@ export const logout = () => async (dispatch) => {
       withCredentials: true,
     });
     dispatch(authSlice.actions.logoutSuccess("Logout Successfully."));
-    window.location.href = '/'; // Force a full page reload to the landing page
   } catch (error) {
-    // Defensive check to avoid accessing undefined
     if (error.response) {
-      console.error("Logout error:", error.response.data);
       dispatch(authSlice.actions.logoutFailed(error.response.data.message));
     } else {
-      console.error("Logout error:", error.message || error);
       dispatch(authSlice.actions.logoutFailed(error.message || "Network error"));
     }
   }
@@ -258,8 +252,6 @@ export const forgotPassword = (email) => async (dispatch) => {
 };
 
 export const resetPassword = ({ password, confirmPassword, token }) => async (dispatch) => {
-  console.log("Token inside authSlice:", token); // Should show actual token
-
   try {
     const res = await axios.put(
       `http://localhost:4000/api/v1/auth/password/reset/${token}`,
@@ -291,7 +283,6 @@ export const updatePassword = (data) => async (dispatch) => {
       {
         withCredentials: true,
         headers: {
-          // Don't set Content-Type manually — let Axios handle it for FormData
         },
       }
     );

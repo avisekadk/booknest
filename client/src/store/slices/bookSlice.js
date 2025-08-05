@@ -1,5 +1,3 @@
-// client/src/store/slices/bookSlice.js
-
 import { createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
@@ -61,7 +59,6 @@ const bookSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
-    // Reducers for quantity changes
     changeQuantityRequest: (state) => {
       state.loading = true;
     },
@@ -84,8 +81,6 @@ const bookSlice = createSlice({
     },
   },
 });
-
-// --- Async Actions ---
 
 export const fetchAllBooks = () => async (dispatch) => {
   dispatch(bookSlice.actions.fetchBooksRequest());
@@ -133,9 +128,8 @@ export const updateBook = (id, bookData) => async (dispatch) => {
 export const deleteBook = (id) => async (dispatch) => {
   dispatch(bookSlice.actions.deleteBookRequest());
   try {
-    // The URL was wrong. It should include "/admin".
     const { data } = await axios.delete(
-      `http://localhost:4000/api/v1/book/admin/delete/${id}`, // Corrected URL
+      `http://localhost:4000/api/v1/book/admin/delete/${id}`,
       { withCredentials: true }
     );
     dispatch(bookSlice.actions.deleteBookSuccess({ message: data.message, bookId: id }));
@@ -147,7 +141,6 @@ export const deleteBook = (id) => async (dispatch) => {
   }
 };
 
-// Action for incrementing quantity
 export const incrementQuantity = (id) => async (dispatch) => {
   dispatch(bookSlice.actions.changeQuantityRequest());
   try {
@@ -162,7 +155,6 @@ export const incrementQuantity = (id) => async (dispatch) => {
   }
 };
 
-// Action for decrementing quantity
 export const decrementQuantity = (id) => async (dispatch) => {
   dispatch(bookSlice.actions.changeQuantityRequest());
   try {

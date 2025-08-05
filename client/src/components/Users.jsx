@@ -6,9 +6,8 @@ const Users = () => {
   const { users } = useSelector((state) => state.user);
   const [searchedKeyword, setSearchedKeyword] = useState("");
 
-  // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [usersPerPage] = useState(10); // Changed from 15 to 10 users per page
+  const [usersPerPage] = useState(10);
 
   const formatDate = (timeStamp) => {
     if (!timeStamp) return "N/A";
@@ -23,7 +22,6 @@ const Users = () => {
     return result;
   };
 
-  // Filter users based on search keyword (name or email)
   const filteredUsers = users.filter((user) => {
     const matchesName = user.name
       .toLowerCase()
@@ -34,36 +32,29 @@ const Users = () => {
     return (matchesName || matchesEmail) && user.role === "User";
   });
 
-  // Sorting logic using useMemo
   const sortedUsers = useMemo(() => {
     return [...filteredUsers].sort((a, b) => {
       const borrowDiff =
         (b.borrowedBooks?.length || 0) - (a.borrowedBooks?.length || 0);
       if (borrowDiff !== 0) {
-        return borrowDiff; // Sort by most borrowed first
+        return borrowDiff;
       }
-      // If borrow count is the same, sort by newest user first
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
   }, [filteredUsers]);
 
-  // Reset to the first page whenever the search keyword changes
   useEffect(() => {
     setCurrentPage(1);
   }, [searchedKeyword]);
 
-  // Pagination Logic
   const indexOfLastUser = currentPage * usersPerPage;
   const indexOfFirstUser = indexOfLastUser - usersPerPage;
   const currentUsers = sortedUsers.slice(indexOfFirstUser, indexOfLastUser);
 
-  // Calculate total pages
   const totalPages = Math.ceil(sortedUsers.length / usersPerPage);
 
-  // Handle page change
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  // Pagination style logic
   const renderPageNumbers = () => {
     const pageNumbers = [];
     const maxPageButtons = 3;
@@ -205,7 +196,6 @@ const Users = () => {
               </tbody>
             </table>
           </div>
-          {/* Pagination Controls */}
           {sortedUsers.length > 0 && (
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8">
               <div className="text-gray-700 text-lg font-semibold">

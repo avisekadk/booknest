@@ -48,7 +48,6 @@ const AddBookPopup = () => {
         </h3>
         <form onSubmit={handleAddBook} className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-            {/* Title spans both columns for a cleaner look */}
             <div className="md:col-span-2">
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Book Title
@@ -63,7 +62,6 @@ const AddBookPopup = () => {
               />
             </div>
 
-            {/* Author, Price, and Quantity in a single column */}
             <div className="space-y-5">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">
@@ -106,7 +104,6 @@ const AddBookPopup = () => {
               </div>
             </div>
 
-            {/* Description in the second column */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Description
@@ -115,7 +112,7 @@ const AddBookPopup = () => {
                 value={description}
                 placeholder="Book Description"
                 onChange={(e) => setDescription(e.target.value)}
-                rows={10} // Adjusted rows to better fit the new layout
+                rows={10}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none"
               />
             </div>

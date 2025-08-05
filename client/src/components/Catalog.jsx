@@ -17,17 +17,14 @@ const Catalog = () => {
   const { loading, error, allBorrowedBooks, message } = useSelector(
     (state) => state.borrow
   );
-  // Fetching all books from the book slice to get titles
   const { books: allBooks } = useSelector((state) => state.book);
 
   const [filter, setFilter] = useState("borrowed");
   const [searchedKeyword, setSearchedKeyword] = useState("");
 
-  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const [booksPerPage] = useState(15); // Set to 15 books per page
+  const [booksPerPage] = useState(15);
 
-  // Creating a book map for efficient title lookup using useMemo
   const bookMap = useMemo(() => {
     if (!allBooks || allBooks.length === 0) return {};
     return allBooks.reduce((acc, book) => {
@@ -57,7 +54,6 @@ const Catalog = () => {
 
   const currentDate = new Date();
 
-  // Filter books based on borrowed/overdue status and search keyword
   const filteredAndSearchedBooks = (allBorrowedBooks || []).filter((book) => {
     const dueDate = book.dueDate ? new Date(book.dueDate) : null;
     const isBorrowed = dueDate && dueDate > currentDate && !book.returnDate;
@@ -75,7 +71,6 @@ const Catalog = () => {
     return matchesFilter && matchesSearch;
   });
 
-  // Pagination calculations
   const indexOfLastBook = currentPage * booksPerPage;
   const indexOfFirstBook = indexOfLastBook - booksPerPage;
   const currentBooks = filteredAndSearchedBooks.slice(
@@ -88,7 +83,6 @@ const Catalog = () => {
     setCurrentPage(pageNumber);
   };
 
-  // Pagination style logic from Code 2
   const renderPageNumbers = () => {
     const pageNumbers = [];
     const maxPageButtons = 3;
@@ -166,7 +160,6 @@ const Catalog = () => {
     setCurrentPage(1);
   };
 
-  // Local state for the Return Book popup
   const [showReturnPopup, setShowReturnPopup] = useState(false);
   const [borrowedBookId, setBorrowedBookId] = useState("");
   const [email, setEmail] = useState("");
@@ -201,7 +194,6 @@ const Catalog = () => {
     }
   }, [dispatch, error, message]);
 
-  // Check if all data is loaded before rendering the table
   const isLoadingData =
     loading || !allBorrowedBooks || !allBooks || allBooks.length === 0;
 
@@ -291,16 +283,13 @@ const Catalog = () => {
                       <td className="px-4 py-3 text-gray-700 font-medium text-sm">
                         {bookTitle || "N/A"}
                       </td>
-                      {/* Change 1 */}
                       <td className="px-4 py-3 text-gray-700 hidden sm:table-cell text-sm">
                         Nrs. {book.price || "N/A"}
                       </td>
                       <td className="px-4 py-3 font-bold text-sm">
                         {isOverdue && !book.returnDate ? (
-                          // Change 2
                           <span className="text-red-600">Nrs. {fine}</span>
                         ) : (
-                          // Change 3
                           <span className="text-gray-500">Nrs. 0.00</span>
                         )}
                       </td>
@@ -352,7 +341,6 @@ const Catalog = () => {
           </h3>
         )}
 
-        {/* Pagination Controls */}
         {filteredAndSearchedBooks.length > 0 && (
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8">
             <div className="text-gray-700 text-lg font-semibold">
@@ -386,7 +374,6 @@ const Catalog = () => {
         )}
       </main>
 
-      {/* Render popup only if open and we have valid data */}
       {showReturnPopup && borrowedBookId && email && (
         <ReturnBookPopup
           bookId={borrowedBookId}

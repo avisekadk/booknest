@@ -8,9 +8,8 @@ const KycManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [viewingImage, setViewingImage] = useState(null);
 
-  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10); // Display 10 items per page
+  const [itemsPerPage] = useState(10);
 
   const fetchSubmissions = async () => {
     try {
@@ -38,7 +37,7 @@ const KycManagement = () => {
       rejectionReason = prompt("Please provide a reason for rejection:");
       if (rejectionReason === null || rejectionReason === "") {
         toast.info("Rejection cancelled or no reason provided.");
-        return; // User cancelled prompt or left it blank
+        return;
       }
     }
 
@@ -49,20 +48,18 @@ const KycManagement = () => {
         { withCredentials: true }
       );
       toast.success(data.message);
-      fetchSubmissions(); // Refresh the list
+      fetchSubmissions();
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to update status.");
     }
   };
 
-  // Sort submissions by creation date (latest first)
   const sortedSubmissions = useMemo(() => {
     return [...submissions].sort(
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
     );
   }, [submissions]);
 
-  // Pagination Logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = sortedSubmissions.slice(
@@ -256,7 +253,6 @@ const KycManagement = () => {
             </table>
           </div>
 
-          {/* Pagination Controls */}
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8">
             <div className="text-gray-700 text-lg font-semibold">
               Results:{" "}

@@ -5,7 +5,7 @@ import userReducer from "./slices/userSlice";
 import bookReducer from "./slices/bookSlice";
 import borrowReducer from "./slices/borrowSlice";
 import prebookReducer from "./slices/prebookSlice";
-import notificationReducer from "./slices/notificationSlice"; // Import the new reducer
+import notificationReducer from "./slices/notificationSlice";
 
 export const store = configureStore({
     reducer: {
@@ -14,7 +14,7 @@ export const store = configureStore({
         user: userReducer,
         book: bookReducer,
         borrow: borrowReducer,
-        prebook: prebookReducer, // Ensure prebook is here
-        notification: notificationReducer, // Add the notification reducer
+        prebook: prebookReducer,
+        notification: notificationReducer,
     },
 });

@@ -72,7 +72,6 @@ const KycForm = () => {
         }
       );
       toast.success(data.message);
-      // Refetch status
       const statusRes = await axios.get(
         "http://localhost:4000/api/v1/kyc/status",
         { withCredentials: true }
@@ -159,10 +158,8 @@ const KycForm = () => {
               {kycData.details?.rejectionReason || "Not provided"}
             </p>
           </div>
-          {/* Add this button */}
           <button
             onClick={() => {
-              // Resetting state to show the form again
               setKycData(null);
               setFormData({
                 firstName: "",

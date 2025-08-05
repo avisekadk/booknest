@@ -1,6 +1,4 @@
-// client/src/App.jsx
-
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
@@ -18,14 +16,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { getUser } from "./store/slices/authSlice";
 import { fetchAllUsers } from "./store/slices/userSlice";
 import { fetchAllBooks } from "./store/slices/bookSlice";
-import { fetchUserBorrowedBooks } from "./store/slices/borrowSlice";
+import {
+  fetchUserBorrowedBooks,
+  fetchAllBorrowedBooks,
+} from "./store/slices/borrowSlice";
 import "react-toastify/dist/ReactToastify.css";
 
-// Import actions for prebookings and notifications
 import { fetchMyPrebookings } from "./store/slices/prebookSlice";
 import { fetchMyNotifications } from "./store/slices/notificationSlice";
 
-// Import the new popups to render them at the top level
 import QRCodePopup from "./popups/QRCodePopup";
 import ScannerPopup from "./popups/ScannerPopup";
 
@@ -34,24 +33,30 @@ const App = () => {
   const { qrCodePopup, scannerPopup } = useSelector((state) => state.popup);
   const dispatch = useDispatch();
 
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
+
   useEffect(() => {
     dispatch(getUser());
   }, [dispatch]);
 
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (isAuthenticated && user && !initialLoadDone) {
       dispatch(fetchAllBooks());
       if (user.role === "User") {
         dispatch(fetchUserBorrowedBooks());
-        // FIX: Fetch pre-bookings and notifications for the user
         dispatch(fetchMyPrebookings());
         dispatch(fetchMyNotifications());
       }
       if (user.role === "Admin") {
         dispatch(fetchAllUsers());
+        dispatch(fetchAllBorrowedBooks());
       }
+      setInitialLoadDone(true);
     }
-  }, [dispatch, isAuthenticated, user]);
+    if (!isAuthenticated) {
+      setInitialLoadDone(false);
+    }
+  }, [dispatch, isAuthenticated, user, initialLoadDone]);
 
   return (
     <BrowserRouter>
@@ -68,7 +73,11 @@ const App = () => {
         <Route path="/book/:id" element={<BookDetails />} />
         <Route path="/kyc" element={<KycPage />} />
       </Routes>
-      <ToastContainer position="top-right" autoClose={5000} />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+      />
     </BrowserRouter>
   );
 };

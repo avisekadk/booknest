@@ -1,5 +1,3 @@
-// client/src/pages/Login.jsx
-
 import React, { useEffect, useState } from "react";
 import logo from "../assets/black-logo.png";
 import logoWith_title from "../assets/logo-with-title.png";
@@ -31,7 +29,6 @@ const Login = () => {
     }
   }, [dispatch, error]);
 
-  // Redirect to /dashboard instead of /
   if (isAuthenticated) {
     return <Navigate to={"/dashboard"} />;
   }

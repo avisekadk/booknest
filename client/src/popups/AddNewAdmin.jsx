@@ -51,7 +51,6 @@ const AddNewAdmin = () => {
           Add New Admin
         </h3>
         <form onSubmit={handleAddNewAdmin} className="space-y-4">
-          {/* Avatar Selection */}
           <div className="flex flex-col items-center mb-4">
             <label htmlFor="avatarInput" className="cursor-pointer">
               <img
@@ -69,7 +68,6 @@ const AddNewAdmin = () => {
             </label>
           </div>
 
-          {/* Name Input */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
               Name
@@ -84,7 +82,6 @@ const AddNewAdmin = () => {
             />
           </div>
 
-          {/* Email Input */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
               Email
@@ -99,7 +96,6 @@ const AddNewAdmin = () => {
             />
           </div>
 
-          {/* Password Input */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
               Password
@@ -114,7 +110,6 @@ const AddNewAdmin = () => {
             />
           </div>
 
-          {/* Buttons */}
           <div className="flex justify-end gap-4 pt-4">
             <button
               type="button"
