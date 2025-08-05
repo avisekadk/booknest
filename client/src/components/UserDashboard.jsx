@@ -3,11 +3,9 @@ import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { Pie } from "react-chartjs-2";
 import Header from "../layout/Header";
-
 // Import icons and images
 import { Book, RotateCcw, Trash2 } from "lucide-react";
 import { deleteNotification } from "../store/slices/notificationSlice";
-
 // Chart.js imports and registration
 import {
   Chart as ChartJS,
@@ -37,6 +35,7 @@ const UserDashboard = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { userBorrowedBooks = [] } = useSelector((state) => state.borrow || {});
+  // FIX: Correctly select prebookings from the state
   const { prebookings = [] } = useSelector((state) => state.prebook || {});
   const { notifications = [] } = useSelector(
     (state) => state.notification || {}

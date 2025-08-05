@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { updatePassword } from "../store/slices/authSlice";
 import { toggleSettingPopup } from "../store/slices/popUpSlice";
 import { toast } from "react-toastify";
-import { X } from "lucide-react"; // Using Lucide icon for consistency
+import { X } from "lucide-react";
 
 const SettingPopup = () => {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -19,10 +19,17 @@ const SettingPopup = () => {
       toast.error("New password and confirm new password do not match!");
       return;
     }
-    const data = new FormData();
-    data.append("currentPassword", currentPassword);
-    data.append("newPassword", newPassword);
-    dispatch(updatePassword(data));
+
+    // --- THIS IS THE FIX ---
+    // Instead of using FormData, we create a plain JavaScript object.
+    // Axios will automatically set the Content-Type to 'application/json'.
+    const passwordData = {
+      currentPassword,
+      newPassword,
+      confirmNewPassword,
+    };
+
+    dispatch(updatePassword(passwordData));
   };
 
   return (
@@ -105,11 +112,11 @@ const SettingPopup = () => {
               type="submit"
               disabled={loading}
               className={`px-6 py-2 rounded-lg font-bold text-white
-                         bg-gradient-to-r from-blue-500 to-blue-600
-                         hover:from-blue-600 hover:to-blue-700 transition duration-300 ease-in-out
-                         shadow-lg transform hover:scale-105 ${
-                           loading ? "opacity-70 cursor-not-allowed" : ""
-                         }`}
+                            bg-gradient-to-r from-blue-500 to-blue-600
+                            hover:from-blue-600 hover:to-blue-700 transition duration-300 ease-in-out
+                            shadow-lg transform hover:scale-105 ${
+                              loading ? "opacity-70 cursor-not-allowed" : ""
+                            }`}
             >
               {loading ? "UPDATING..." : "CONFIRM"}
             </button>

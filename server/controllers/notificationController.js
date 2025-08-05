@@ -2,7 +2,8 @@ import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
 import ErrorHandler from "../middlewares/errorMiddlewares.js";
 import { Book } from "../models/bookModel.js";
 import { Notification } from "../models/notificationModel.js";
-import { User } from "../models/userModel.js"; // Ensure User is imported if needed, though not directly used here
+import { User } from "../models/userModel.js";
+import { Prebooking } from "../models/prebookingModel.js"; // Import Prebooking model
 
 export const subscribeToBook = catchAsyncErrors(async (req, res, next) => {
     const { bookId } = req.params;
@@ -13,8 +14,10 @@ export const subscribeToBook = catchAsyncErrors(async (req, res, next) => {
         return next(new ErrorHandler("Book not found.", 404));
     }
 
-    if (book.quantity > 0) {
-        return next(new ErrorHandler("Book is already available.", 400));
+    // FIX: Check if the book is truly available by comparing quantity with pre-bookings
+    const prebookingCount = await Prebooking.countDocuments({ bookId });
+    if (book.quantity > 0 && prebookingCount < book.quantity) {
+        return next(new ErrorHandler("This book is currently available for pre-booking.", 400));
     }
 
     if (!book.subscribers.includes(userId)) {

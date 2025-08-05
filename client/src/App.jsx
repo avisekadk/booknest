@@ -21,6 +21,10 @@ import { fetchAllBooks } from "./store/slices/bookSlice";
 import { fetchUserBorrowedBooks } from "./store/slices/borrowSlice";
 import "react-toastify/dist/ReactToastify.css";
 
+// Import actions for prebookings and notifications
+import { fetchMyPrebookings } from "./store/slices/prebookSlice";
+import { fetchMyNotifications } from "./store/slices/notificationSlice";
+
 // Import the new popups to render them at the top level
 import QRCodePopup from "./popups/QRCodePopup";
 import ScannerPopup from "./popups/ScannerPopup";
@@ -39,6 +43,9 @@ const App = () => {
       dispatch(fetchAllBooks());
       if (user.role === "User") {
         dispatch(fetchUserBorrowedBooks());
+        // FIX: Fetch pre-bookings and notifications for the user
+        dispatch(fetchMyPrebookings());
+        dispatch(fetchMyNotifications());
       }
       if (user.role === "Admin") {
         dispatch(fetchAllUsers());
