@@ -1,4 +1,3 @@
-// src/components/KycManagement.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -32,6 +31,29 @@ const KycManagement = () => {
   useEffect(() => {
     fetchSubmissions();
   }, []);
+
+  const handleUpdateStatus = async (id, status) => {
+    let rejectionReason = "";
+    if (status === "Rejected") {
+      rejectionReason = prompt("Please provide a reason for rejection:");
+      if (rejectionReason === null || rejectionReason === "") {
+        toast.info("Rejection cancelled or no reason provided.");
+        return; // User cancelled prompt or left it blank
+      }
+    }
+
+    try {
+      const { data } = await axios.put(
+        `http://localhost:4000/api/v1/kyc/admin/update/${id}`,
+        { status, rejectionReason },
+        { withCredentials: true }
+      );
+      toast.success(data.message);
+      fetchSubmissions(); // Refresh the list
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to update status.");
+    }
+  };
 
   // Sort submissions by creation date (latest first)
   const sortedSubmissions = useMemo(() => {
@@ -169,6 +191,7 @@ const KycManagement = () => {
                   <th className="px-4 py-3">User Info</th>
                   <th className="px-4 py-3">Document</th>
                   <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -205,6 +228,28 @@ const KycManagement = () => {
                     <td className="px-4 py-3">
                       {renderStatusBadge(sub.status)}
                     </td>
+                    <td className="px-4 py-3 text-right">
+                      {sub.status === "Pending" && (
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() =>
+                              handleUpdateStatus(sub._id, "Verified")
+                            }
+                            className="bg-green-500 text-white px-3 py-1 rounded-md text-sm font-medium hover:bg-green-600 transition"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleUpdateStatus(sub._id, "Rejected")
+                            }
+                            className="bg-red-500 text-white px-3 py-1 rounded-md text-sm font-medium hover:bg-red-600 transition"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -224,8 +269,8 @@ const KycManagement = () => {
                 onClick={() => paginate(currentPage - 1)}
                 disabled={currentPage === 1}
                 className="h-10 w-10 flex items-center justify-center rounded-lg bg-white text-gray-700 border border-gray-300 font-semibold shadow-sm
-                           hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed
-                           transition duration-200 ease-in-out"
+                               hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed
+                               transition duration-200 ease-in-out"
               >
                 &lt;
               </button>
@@ -234,8 +279,8 @@ const KycManagement = () => {
                 onClick={() => paginate(currentPage + 1)}
                 disabled={currentPage === totalPages}
                 className="h-10 w-10 flex items-center justify-center rounded-lg bg-white text-gray-700 border border-gray-300 font-semibold shadow-sm
-                           hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed
-                           transition duration-200 ease-in-out"
+                               hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed
+                               transition duration-200 ease-in-out"
               >
                 &gt;
               </button>
