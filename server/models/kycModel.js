@@ -1,4 +1,3 @@
-// server/models/kycModel.js
 import mongoose from "mongoose";
 
 const kycSchema = new mongoose.Schema({
@@ -6,7 +5,7 @@ const kycSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
-        unique: true // Each user can only have one KYC submission
+        unique: true
     },
     firstName: { type: String, required: true },
     middleName: { type: String },
@@ -26,7 +25,7 @@ const kycSchema = new mongoose.Schema({
         enum: ["Pending", "Verified", "Rejected"],
         default: "Pending",
     },
-    rejectionReason: { // Optional field for admin feedback
+    rejectionReason: {
         type: String,
     }
 }, { timestamps: true });

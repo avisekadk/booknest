@@ -4,7 +4,6 @@ import { User } from "../models/userModel.js";
 import { Kyc } from "../models/kycModel.js";
 import { v2 as cloudinary } from "cloudinary";
 
-// User: Submit their KYC details
 export const submitKyc = catchAsyncErrors(async (req, res, next) => {
     const { firstName, lastName, middleName, phone, documentType } = req.body;
     const documentImage = req.files && req.files.documentImage;
@@ -20,12 +19,10 @@ export const submitKyc = catchAsyncErrors(async (req, res, next) => {
 
     const existingKyc = await Kyc.findOne({ user: req.user._id });
 
-    // MODIFIED LOGIC HERE
     if (existingKyc && (existingKyc.status === "Pending" || existingKyc.status === "Verified")) {
         return next(new ErrorHandler("You have already submitted a KYC request that is pending or verified.", 400));
     }
 
-    // If resubmitting a rejected application, delete the old image from Cloudinary
     if (existingKyc && existingKyc.status === "Rejected") {
         await cloudinary.uploader.destroy(existingKyc.documentImage.public_id);
     }
@@ -50,15 +47,13 @@ export const submitKyc = catchAsyncErrors(async (req, res, next) => {
             public_id: cloudinaryResponse.public_id,
             url: cloudinaryResponse.secure_url,
         },
-        status: "Pending", // Always set to Pending on new submission/resubmission
-        rejectionReason: null, // Clear previous rejection reason
+        status: "Pending",
+        rejectionReason: null,
     };
 
     if (existingKyc) {
-        // Update the existing rejected document
         await Kyc.findByIdAndUpdate(existingKyc._id, kycDetails, { new: true, runValidators: true });
     } else {
-        // Create a new document
         await Kyc.create(kycDetails);
     }
 
@@ -70,7 +65,6 @@ export const submitKyc = catchAsyncErrors(async (req, res, next) => {
     });
 });
 
-// User: Get their own KYC status
 export const getMyKycStatus = catchAsyncErrors(async (req, res, next) => {
     const kyc = await Kyc.findOne({ user: req.user._id });
     const user = await User.findById(req.user._id).select("kycStatus");
@@ -82,11 +76,10 @@ export const getMyKycStatus = catchAsyncErrors(async (req, res, next) => {
     res.status(200).json({
         success: true,
         status: user.kycStatus,
-        details: kyc, // This will be null if not submitted
+        details: kyc,
     });
 });
 
-// Admin: Get all KYC submissions
 export const getAllKycSubmissions = catchAsyncErrors(async (req, res, next) => {
     const submissions = await Kyc.find().populate("user", "name email");
     res.status(200).json({
@@ -95,9 +88,8 @@ export const getAllKycSubmissions = catchAsyncErrors(async (req, res, next) => {
     });
 });
 
-// Admin: Update a user's KYC status
 export const updateKycStatus = catchAsyncErrors(async (req, res, next) => {
-    const { id } = req.params; // This is the KYC submission ID
+    const { id } = req.params;
     const { status, rejectionReason } = req.body;
 
     if (!status || !["Verified", "Rejected"].includes(status)) {

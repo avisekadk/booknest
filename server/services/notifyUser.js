@@ -1,18 +1,11 @@
-// server/services/notifyUser.js
-
 import cron from "node-cron";
 import { Borrow } from "../models/borrowModel.js";
 import { User } from "../models/userModel.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import { Notification } from "../models/notificationModel.js";
-import { calculateFine } from "../utils/fineCalculator.js"; // Import the fine calculator
+import { calculateFine } from "../utils/fineCalculator.js";
 
-/**
- * @description Schedules a cron job to check for overdue books and notify users via email and in-app notifications.
- * This function runs every 30 minutes.
- */
 export const notifyUsers = () => {
-    // This cron job runs every 30 minutes. You can adjust the schedule as needed.
     cron.schedule("*/30 * * * *", async () => {
         try {
             const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -33,7 +26,6 @@ export const notifyUsers = () => {
                     const userId = element.user._id;
                     const bookId = element.book._id;
 
-                    // FIX: Calculate the fine and include it in the messages
                     const fine = calculateFine(element.dueDate);
 
                     await sendEmail({

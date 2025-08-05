@@ -32,14 +32,12 @@ export const createPrebooking = catchAsyncErrors(async (req, res, next) => {
         return next(new ErrorHandler("You have already pre-booked this book.", 400));
     }
 
-    // Check if the number of pre-bookings is less than the available quantity
     const prebookingCount = await Prebooking.countDocuments({ bookId });
     if (prebookingCount >= book.quantity) {
         return next(new ErrorHandler("All available copies of this book have been pre-booked.", 400));
     }
 
     await Prebooking.create({ bookId, userId });
-    // Don't decrement quantity on pre-booking, do it on borrow record
     res.status(201).json({ success: true, message: "Book pre-booked successfully! It will be reserved for you." });
 });
 

@@ -1,4 +1,3 @@
-// server/controllers/commentController.js
 import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
 import ErrorHandler from "../middlewares/errorMiddlewares.js";
 import { Comment } from "../models/commentModel.js";
@@ -40,7 +39,6 @@ export const deleteComment = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Comment not found.", 404));
   }
 
-  // Allow deletion if user is admin or the author of the comment
   if (req.user.role === "Admin" || comment.user.id.toString() === req.user._id.toString()) {
     await comment.deleteOne();
     return res.status(200).json({ success: true, message: "Comment deleted." });

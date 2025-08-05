@@ -62,7 +62,6 @@ export const registerNewAdmin = catchAsyncErrors(async (req, res, next) => {
     });
 });
 
-// CORRECTED CONTROLLER FOR QR SCANNER
 export const getUserDetailsById = catchAsyncErrors(async (req, res, next) => {
     const { id } = req.params;
     const user = await User.findById(id).select("name email");
@@ -75,7 +74,6 @@ export const getUserDetailsById = catchAsyncErrors(async (req, res, next) => {
         .populate("book", "title")
         .sort({ createdAt: -1 });
 
-    // Fetch pre-bookings for the user
     const prebookings = await Prebooking.find({ userId: id })
         .populate('bookId', 'title');
 

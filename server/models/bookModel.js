@@ -24,10 +24,6 @@ const bookSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    /**
-     * @desc The total number of copies of the book, including those borrowed.
-     * This is useful for tracking the total inventory.
-     */
     totalCopies: {
       type: Number,
       required: true,
@@ -36,11 +32,11 @@ const bookSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    borrowCount: { // For sorting by popularity
+    borrowCount: {
       type: Number,
       default: 0,
     },
-    subscribers: [{ // For "Notify Me" feature
+    subscribers: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
     }],
