@@ -2,6 +2,7 @@ import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
 import ErrorHandler from "../middlewares/errorMiddlewares.js";
 import { Book } from "../models/bookModel.js";
 import { Borrow } from "../models/borrowModel.js";
+import { Prebooking } from "../models/prebookingModel.js"; // Import Prebooking model
 import { User } from "../models/userModel.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import { Notification } from "../models/notificationModel.js"; // Import Notification model
@@ -13,32 +14,49 @@ export const getPublicBooks = catchAsyncErrors(async (req, res, next) => {
 });
 
 export const getSingleBook = catchAsyncErrors(async (req, res, next) => {
-    const { id } = req.params;
-    const book = await Book.findById(id);
-    if (!book) {
-        return next(new ErrorHandler("Book not found.", 404));
-    }
-    res.status(200).json({ success: true, book });
+  const { id } = req.params;
+  const book = await Book.findById(id).lean(); // Use lean() for a plain object
+  if (!book) {
+    return next(new ErrorHandler("Book not found.", 404));
+  }
+  
+  // Add prebooking count for the single book
+  const prebookingCount = await Prebooking.countDocuments({ bookId: id });
+  book.prebookingCount = prebookingCount;
+
+  res.status(200).json({ success: true, book });
 });
 
 // --- AUTHENTICATED CONTROLLERS ---
 export const getAllBook = catchAsyncErrors(async (req, res, next) => {
-    let books = await Book.find().lean();
-    const borrowCounts = await Borrow.aggregate([
-        { $group: { _id: "$book", count: { $sum: 1 } } },
-    ]);
+  let books = await Book.find().lean();
+  
+  // Existing borrow count logic
+  const borrowCounts = await Borrow.aggregate([
+    { $group: { _id: "$book", count: { $sum: 1 } } },
+  ]);
+  const borrowCountMap = new Map();
+  borrowCounts.forEach((item) => {
+    borrowCountMap.set(item._id.toString(), item.count);
+  });
 
-    const borrowCountMap = new Map();
-    borrowCounts.forEach((item) => {
-        borrowCountMap.set(item._id.toString(), item.count);
-    });
+  // ADD THIS: Pre-booking count logic
+  const prebookingCounts = await Prebooking.aggregate([
+    { $group: { _id: "$bookId", count: { $sum: 1 } } },
+  ]);
+  const prebookingCountMap = new Map();
+  prebookingCounts.forEach((item) => {
+    prebookingCountMap.set(item._id.toString(), item.count);
+  });
 
-    books = books.map((book) => ({
-        ...book,
-        borrowCount: borrowCountMap.get(book._id.toString()) || 0,
-    }));
+  // Map both counts to the books array
+  books = books.map((book) => ({
+    ...book,
+    borrowCount: borrowCountMap.get(book._id.toString()) || 0,
+    prebookingCount: prebookingCountMap.get(book._id.toString()) || 0, // Add prebookingCount
+  }));
 
-    res.status(200).json({ success: true, books });
+  res.status(200).json({ success: true, books });
 });
 
 export const addBook = catchAsyncErrors(async (req, res, next) => {

@@ -312,17 +312,30 @@ const BookManagement = () => {
                       <td className="px-4 py-3 text-gray-700 hidden md:table-cell text-sm">
                         Nrs. {book.price}
                       </td>
+
+                      {/* MODIFIED AVAILABILITY LOGIC */}
                       <td className="px-4 py-3">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            book.availability
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
+                            book.quantity > 0 &&
+                            book.prebookingCount < book.quantity
+                              ? "bg-green-100 text-green-800" // Available
+                              : book.quantity > 0 &&
+                                book.prebookingCount >= book.quantity
+                              ? "bg-yellow-100 text-yellow-800" // Booked
+                              : "bg-red-100 text-red-800" // Unavailable
                           }`}
                         >
-                          {book.availability ? "Available" : "Unavailable"}
+                          {book.quantity > 0 &&
+                          book.prebookingCount < book.quantity
+                            ? "Available"
+                            : book.quantity > 0 &&
+                              book.prebookingCount >= book.quantity
+                            ? "Booked"
+                            : "Unavailable"}
                         </span>
                       </td>
+
                       {isAuthenticated && user?.role === "Admin" && (
                         <td className="px-4 py-3 flex gap-2 my-auto justify-center">
                           <button
