@@ -144,6 +144,7 @@ const UserDashboard = () => {
                       className="flex justify-between items-center py-2 border-b last:border-b-0"
                     >
                       <p className="text-sm flex-1">
+                        {/* MODIFIED LOGIC HERE */}
                         {notification.type === "availability" &&
                         notification.bookId ? (
                           <>
@@ -157,6 +158,10 @@ const UserDashboard = () => {
                               Pre-Book Now!
                             </Link>
                           </>
+                        ) : notification.type === "overdue" ? (
+                          <span className="font-semibold text-red-700">
+                            {notification.message}
+                          </span>
                         ) : (
                           <span className="text-gray-800">
                             {notification.message}

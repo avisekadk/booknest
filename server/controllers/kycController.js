@@ -1,4 +1,3 @@
-// server/controllers/kycController.js
 import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
 import ErrorHandler from "../middlewares/errorMiddlewares.js";
 import { User } from "../models/userModel.js";
@@ -20,8 +19,15 @@ export const submitKyc = catchAsyncErrors(async (req, res, next) => {
     }
 
     const existingKyc = await Kyc.findOne({ user: req.user._id });
-    if (existingKyc) {
-        return next(new ErrorHandler("You have already submitted a KYC request.", 400));
+
+    // MODIFIED LOGIC HERE
+    if (existingKyc && (existingKyc.status === "Pending" || existingKyc.status === "Verified")) {
+        return next(new ErrorHandler("You have already submitted a KYC request that is pending or verified.", 400));
+    }
+
+    // If resubmitting a rejected application, delete the old image from Cloudinary
+    if (existingKyc && existingKyc.status === "Rejected") {
+        await cloudinary.uploader.destroy(existingKyc.documentImage.public_id);
     }
     
     const cloudinaryResponse = await cloudinary.uploader.upload(documentImage.tempFilePath, {
@@ -33,7 +39,7 @@ export const submitKyc = catchAsyncErrors(async (req, res, next) => {
         return next(new ErrorHandler("Failed to upload document.", 500));
     }
 
-    const kycData = {
+    const kycDetails = {
         user: req.user._id,
         firstName,
         lastName,
@@ -44,10 +50,18 @@ export const submitKyc = catchAsyncErrors(async (req, res, next) => {
             public_id: cloudinaryResponse.public_id,
             url: cloudinaryResponse.secure_url,
         },
-        status: "Pending",
+        status: "Pending", // Always set to Pending on new submission/resubmission
+        rejectionReason: null, // Clear previous rejection reason
     };
 
-    await Kyc.create(kycData);
+    if (existingKyc) {
+        // Update the existing rejected document
+        await Kyc.findByIdAndUpdate(existingKyc._id, kycDetails, { new: true, runValidators: true });
+    } else {
+        // Create a new document
+        await Kyc.create(kycDetails);
+    }
+
     await User.findByIdAndUpdate(req.user._id, { kycStatus: "Pending" });
 
     res.status(201).json({

@@ -256,7 +256,7 @@ const MyBorrowedBooks = () => {
                         </span>
                         {isOverdue && (
                           <span className="text-red-600 font-bold text-xs ml-2">
-                            Fine: ${fine}
+                            Fine: Nrs. {fine}
                           </span>
                         )}
                       </td>

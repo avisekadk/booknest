@@ -1,4 +1,3 @@
-// src/components/KycForm.jsx
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
@@ -160,6 +159,25 @@ const KycForm = () => {
               {kycData.details?.rejectionReason || "Not provided"}
             </p>
           </div>
+          {/* Add this button */}
+          <button
+            onClick={() => {
+              // Resetting state to show the form again
+              setKycData(null);
+              setFormData({
+                firstName: "",
+                middleName: "",
+                lastName: "",
+                phone: "",
+                documentType: "Citizenship",
+              });
+              setDocumentImage(null);
+              setPreview("");
+            }}
+            className="mt-6 w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition"
+          >
+            Resubmit Form
+          </button>
         </div>
       </main>
     );

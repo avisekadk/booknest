@@ -98,8 +98,8 @@ export const returnBorrowBooks = catchAsyncErrors(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: fine !== 0
-      ? `Book returned successfully. Total charges: $${fine + book.price}`
-      : `Book returned successfully. Total charges: $${book.price}`,
+      ? `Book returned successfully. Total charges: Nrs. ${fine + book.price}`
+      : `Book returned successfully. Total charges: Nrs. ${book.price}`,
   });
 });
 

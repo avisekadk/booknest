@@ -291,14 +291,17 @@ const Catalog = () => {
                       <td className="px-4 py-3 text-gray-700 font-medium text-sm">
                         {bookTitle || "N/A"}
                       </td>
+                      {/* Change 1 */}
                       <td className="px-4 py-3 text-gray-700 hidden sm:table-cell text-sm">
-                        $ {book.price || "N/A"}
+                        Nrs. {book.price || "N/A"}
                       </td>
                       <td className="px-4 py-3 font-bold text-sm">
                         {isOverdue && !book.returnDate ? (
-                          <span className="text-red-600">${fine}</span>
+                          // Change 2
+                          <span className="text-red-600">Nrs. {fine}</span>
                         ) : (
-                          <span className="text-gray-500">$0.00</span>
+                          // Change 3
+                          <span className="text-gray-500">Nrs. 0.00</span>
                         )}
                       </td>
                       <td className="px-4 py-3 hidden md:table-cell text-sm text-gray-700">

@@ -310,7 +310,7 @@ const BookManagement = () => {
                         </td>
                       )}
                       <td className="px-4 py-3 text-gray-700 hidden md:table-cell text-sm">
-                        $ {book.price}
+                        Nrs. {book.price}
                       </td>
                       <td className="px-4 py-3">
                         <span

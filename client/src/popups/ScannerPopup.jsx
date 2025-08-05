@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { Scanner } from "@yudiel/react-qr-scanner";
 import { toggleScannerPopup } from "../store/slices/popUpSlice";
-import { returnBook } from "../store/slices/borrowSlice";
+import { returnBook, recordBorrowBook } from "../store/slices/borrowSlice";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { Loader, X } from "lucide-react";
@@ -89,6 +89,26 @@ const ScannerPopup = () => {
     });
   };
 
+  // Add this new handler function
+  const handleRecordPrebooking = (bookId, userEmail) => {
+    if (!bookId || !userEmail) {
+      toast.error("Missing book or user information to record the borrow.");
+      return;
+    }
+    // Dispatch the existing action to record the borrow
+    dispatch(recordBorrowBook(userEmail, bookId))
+      .unwrap()
+      .then(() => {
+        // Refresh the user data after recording the borrow
+        resetScanner();
+        toast.success("Book borrow recorded successfully!");
+      })
+      .catch((error) => {
+        const errorMessage = error.message || "Failed to record borrow.";
+        toast.error(errorMessage);
+      });
+  };
+
   const resetScanner = () => {
     setScannedUserData(null);
     setError("");
@@ -161,11 +181,23 @@ const ScannerPopup = () => {
                         prebookedBooks.map((prebook) => (
                           <div
                             key={prebook._id}
-                            className="p-3 rounded-lg bg-blue-50 border border-blue-200"
+                            className="flex justify-between items-center p-3 rounded-lg bg-blue-50 border border-blue-200"
                           >
                             <span className="font-semibold text-gray-800">
                               {prebook.bookId?.title || "Unknown Book"}
                             </span>
+                            {/* Add this button */}
+                            <button
+                              onClick={() =>
+                                handleRecordPrebooking(
+                                  prebook.bookId._id,
+                                  scannedUserData.email
+                                )
+                              }
+                              className="px-3 py-1.5 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors whitespace-nowrap text-sm"
+                            >
+                              Record Borrow
+                            </button>
                           </div>
                         ))
                       ) : (
@@ -199,8 +231,9 @@ const ScannerPopup = () => {
                                   {book.book?.title || "Unknown Book"}
                                 </span>
                                 {isOverdue && (
+                                  // Change 1
                                   <span className="ml-4 text-red-600 font-bold">
-                                    Fine: ${fine}
+                                    Fine: Nrs. {fine}
                                   </span>
                                 )}
                               </div>
@@ -239,8 +272,9 @@ const ScannerPopup = () => {
                               {book.book?.title || "Unknown Book"}
                             </span>
                             {book.fine > 0 && (
+                              // Change 2
                               <span className="ml-4 text-gray-600 font-bold">
-                                Fine Paid: ${book.fine.toFixed(2)}
+                                Fine Paid: Nrs. {book.fine.toFixed(2)}
                               </span>
                             )}
                           </div>
