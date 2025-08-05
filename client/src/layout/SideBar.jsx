@@ -18,9 +18,11 @@ import {
   toggleAddNewAdminPopup,
   toggleSettingPopup,
 } from "../store/slices/popUpSlice";
+import { useNavigate } from "react-router-dom";
 
 const SideBar = ({ isSideBarOpen, setIsSideBarOpen, setSelectedComponent }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { addNewAdminPopup, settingPopup } = useSelector(
     (state) => state.popup
   );
@@ -28,8 +30,9 @@ const SideBar = ({ isSideBarOpen, setIsSideBarOpen, setSelectedComponent }) => {
     (state) => state.auth
   );
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogout = async () => {
+    await dispatch(logout());
+    navigate("/");
   };
 
   useEffect(() => {
