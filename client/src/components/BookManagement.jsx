@@ -52,16 +52,12 @@ const BookManagement = () => {
   const [booksPerPage] = useState(10);
   const [sortOrder, setSortOrder] = useState("title_asc");
 
-  // *** CORRECTED useEffect HOOK ***
   useEffect(() => {
     dispatch(fetchAllBooks());
-
-    // This section is corrected to only fetch all borrowed books if the user is an admin.
-    // This prevents a standard user from making a request to an admin-only endpoint.
     if (user && user.role === "Admin") {
       dispatch(fetchAllBorrowedBooks());
     }
-  }, [dispatch, message, user]); // Added `user` to the dependency array
+  }, [dispatch, message, user]);
 
   useEffect(() => {
     if (message || borrowSliceMessage) {
@@ -224,10 +220,8 @@ const BookManagement = () => {
             {isAuthenticated && user?.role === "Admin" && (
               <button
                 onClick={() => dispatch(toggleAddBookPopup())}
-                className="py-2 px-4 rounded-lg font-bold text-white
-                           bg-gradient-to-r from-blue-500 to-blue-600
-                           hover:from-blue-600 hover:to-blue-700 transition duration-300 ease-in-out
-                           shadow-lg transform hover:scale-105 flex items-center justify-center gap-2"
+                className="py-2 px-4 rounded-lg font-bold text-white bg-blue-500
+                           hover:bg-blue-600 transition duration-300 ease-in-out shadow-lg transform hover:scale-105 flex items-center justify-center gap-2"
               >
                 <span className="text-white text-2xl leading-none">+</span>
                 Add Book

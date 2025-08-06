@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { addBook, fetchAllBooks } from "../store/slices/bookSlice";
 import { toggleAddBookPopup } from "../store/slices/popUpSlice";
+import { toast } from "react-toastify";
 
 const AddBookPopup = () => {
   const dispatch = useDispatch();
@@ -24,15 +25,21 @@ const AddBookPopup = () => {
     const bookData = {
       title,
       author,
-      price,
-      quantity,
+      price: Number(price), // Ensure price and quantity are numbers
+      quantity: Number(quantity),
       description,
-      totalCopies: quantity,
+      totalCopies: Number(quantity),
     };
-    await dispatch(addBook(bookData));
-    await dispatch(fetchAllBooks());
-    dispatch(toggleAddBookPopup());
-    resetForm();
+    try {
+      await dispatch(addBook(bookData)).unwrap();
+      toast.success("Book added successfully!");
+      dispatch(toggleAddBookPopup());
+      resetForm();
+    } catch (error) {
+      toast.error(error.message || "Failed to add book.");
+    } finally {
+      dispatch(fetchAllBooks());
+    }
   };
 
   const handleClose = () => {
