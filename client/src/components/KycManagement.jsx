@@ -7,6 +7,7 @@ const KycManagement = () => {
   const [submissions, setSubmissions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [viewingImage, setViewingImage] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -54,19 +55,33 @@ const KycManagement = () => {
     }
   };
 
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
   const sortedSubmissions = useMemo(() => {
     return [...submissions].sort(
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
     );
   }, [submissions]);
 
+  const filteredSubmissions = sortedSubmissions.filter(
+    (sub) =>
+      sub.user?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      sub.user?.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = sortedSubmissions.slice(
+  const currentItems = filteredSubmissions.slice(
     indexOfFirstItem,
     indexOfLastItem
   );
-  const totalPages = Math.ceil(sortedSubmissions.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -179,7 +194,16 @@ const KycManagement = () => {
       <h2 className="text-2xl font-extrabold text-[#2C3E50] mb-6">
         KYC Management
       </h2>
-      {sortedSubmissions.length > 0 ? (
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Search by user name or email..."
+          value={searchQuery}
+          onChange={handleSearchChange}
+          className="w-1/2 max-w-sm px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+      {filteredSubmissions.length > 0 ? (
         <>
           <div className="mt-6 overflow-x-auto bg-white rounded-2xl shadow-xl">
             <table className="min-w-full border-collapse">
@@ -256,9 +280,9 @@ const KycManagement = () => {
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8">
             <div className="text-gray-700 text-lg font-semibold">
               Results:{" "}
-              {Math.min(indexOfFirstItem + 1, sortedSubmissions.length)} -{" "}
-              {Math.min(indexOfLastItem, sortedSubmissions.length)} of{" "}
-              {sortedSubmissions.length}
+              {Math.min(indexOfFirstItem + 1, filteredSubmissions.length)} -{" "}
+              {Math.min(indexOfLastItem, filteredSubmissions.length)} of{" "}
+              {filteredSubmissions.length}
             </div>
             <div className="flex justify-center items-center gap-2">
               <button

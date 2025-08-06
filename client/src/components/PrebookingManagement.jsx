@@ -8,6 +8,7 @@ import { recordBorrowBook } from "../store/slices/borrowSlice";
 const PrebookingManagement = () => {
   const [prebookings, setPrebookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const dispatch = useDispatch();
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -51,10 +52,28 @@ const PrebookingManagement = () => {
     ).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
   };
 
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const filteredPrebookings = prebookings.filter(
+    (item) =>
+      item.bookId?.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.userId?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.userId?.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = prebookings.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(prebookings.length / itemsPerPage);
+  const currentItems = filteredPrebookings.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+  const totalPages = Math.ceil(filteredPrebookings.length / itemsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -138,7 +157,16 @@ const PrebookingManagement = () => {
       <h2 className="text-2xl font-extrabold text-[#2C3E50] mb-6">
         Pre-booking Requests
       </h2>
-      {prebookings.length > 0 ? (
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Search by book title, user name, or email..."
+          value={searchQuery}
+          onChange={handleSearchChange}
+          className="w-1/2 max-w-sm px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+      {filteredPrebookings.length > 0 ? (
         <>
           <div className="mt-6 overflow-x-auto bg-white rounded-2xl shadow-xl">
             <table className="min-w-full border-collapse">
@@ -205,9 +233,10 @@ const PrebookingManagement = () => {
           </div>
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8">
             <div className="text-gray-700 text-lg font-semibold">
-              Results: {Math.min(indexOfFirstItem + 1, prebookings.length)} -{" "}
-              {Math.min(indexOfLastItem, prebookings.length)} of{" "}
-              {prebookings.length}
+              Results:{" "}
+              {Math.min(indexOfFirstItem + 1, filteredPrebookings.length)} -{" "}
+              {Math.min(indexOfLastItem, filteredPrebookings.length)} of{" "}
+              {filteredPrebookings.length}
             </div>
             <div className="flex justify-center items-center gap-2">
               <button
