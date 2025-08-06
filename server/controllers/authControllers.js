@@ -167,7 +167,7 @@ export const forgotPassword = catchAsyncErrors(async (req, res, next) => {
     try {
         await sendEmail({
             email: user.email,
-            subject: "Bookworm Library Management System Password Recovery",
+            subject: "BookNest Library Management System Password Recovery",
             message,
         });
         res.status(200).json({
