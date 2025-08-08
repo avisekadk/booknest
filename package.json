@@ -1,0 +1,20 @@
+{
+  "name": "booknest",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start_server":" cd ./server && npm run dev",
+    "start_client":"cd ./client && npm run dev",
+    "dev":"concurrently -n 'server, client' -c 'bgBlue,bgGreen' 'npm run start_server' 'npm run start_client'",
+    "install_server": "cd ./server && npm install",
+    "install_client": "cd ./client && npm install",
+    "install":"concurrently 'npm run install_server' 'npm run install_client' "
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "concurrently": "^9.2.0"
+  }
+}
